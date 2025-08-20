@@ -1,15 +1,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MilestoneData } from '../types';
 
+declare const process: any;
+
 const MODEL_NAME = 'gemini-2.5-flash';
 
-const getAIClient = () => {
+const getAIClient = (): GoogleGenAI | null => {
   const apiKey = process.env.API_KEY;
-
   if (!apiKey) {
-    const errorMessage = "API_KEY environment variable not found. Please ensure it is configured in your project settings.";
-    console.error(errorMessage);
-    throw new Error(errorMessage);
+    console.error("API_KEY environment variable not found. Please ensure it is configured in your project settings.");
+    return null;
   }
   return new GoogleGenAI({ apiKey });
 };
@@ -78,8 +78,12 @@ A valid response would be:
 
 
 export const getSuggestions = async (currentText: string, milestones: MilestoneData): Promise<string[]> => {
+  const ai = getAIClient();
+  if (!ai) {
+    throw new Error("AI features disabled: API Key is not configured.");
+  }
+
   try {
-    const ai = getAIClient();
     const prompt = constructPrompt(currentText, milestones);
     
     const response = await ai.models.generateContent({
@@ -110,11 +114,10 @@ export const getSuggestions = async (currentText: string, milestones: MilestoneD
       return parsed.suggestions.slice(0, 2);
     } else {
       console.error("Unexpected AI response format:", parsed);
-      return ["as the day turned to night...", "moments later, things began to shift..."];
+      throw new Error("The AI returned suggestions in an unexpected format.");
     }
   } catch (error) {
     console.error("Error fetching suggestions from Gemini:", error);
-    // Provide fallback suggestions on error
-    return ["when suddenly the air grew still...", "just as the clock struck the hour..."];
+    throw new Error("Could not get AI suggestions. Please try again later.");
   }
 };

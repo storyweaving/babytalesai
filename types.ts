@@ -21,13 +21,10 @@ export type Database = {
           user_id: string;
         };
         Update: {
-          id?: string;
-          created_at?: string;
           name?: string;
           content?: string;
           word_count?: number;
           sort_order?: number;
-          user_id?: string;
         };
       };
       milestones: {
@@ -62,8 +59,6 @@ export type Database = {
           parent_wishes?: string | null;
         };
         Update: {
-          user_id?: string;
-          created_at?: string;
           updated_at?: string;
           writing_about?: string | null;
           sex?: string | null;
@@ -87,7 +82,6 @@ export type Database = {
           name: string | null;
         };
         Update: {
-          id?: string;
           name?: string | null;
         };
       };
@@ -97,14 +91,14 @@ export type Database = {
     Enums: {};
     CompositeTypes: {};
   };
-};
+}
 
 
 export type Chapter = Database['public']['Tables']['chapters']['Row'];
 
 export interface MilestoneData {
   writing_about: string;
-  sex: 'male' | 'female' | 'other' | '';
+  sex: 'male' | 'female' | '';
   name: string;
   dob: string;
   hometown: string;

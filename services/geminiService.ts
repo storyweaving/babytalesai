@@ -1,18 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MilestoneData } from '../types';
 
-declare const process: any;
+if (!process.env.API_KEY) {
+    throw new Error("API Key not found. Make sure you have set API_KEY in your project settings.");
+}
+
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MODEL_NAME = 'gemini-2.5-flash';
-
-const getAIClient = (): GoogleGenAI | null => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    console.error("API_KEY environment variable not found. Please ensure it is configured in your project settings.");
-    return null;
-  }
-  return new GoogleGenAI({ apiKey });
-};
 
 const calculateAge = (dob: string): number | null => {
     if (!dob) return null;
@@ -78,11 +73,6 @@ A valid response would be:
 
 
 export const getSuggestions = async (currentText: string, milestones: MilestoneData): Promise<string[]> => {
-  const ai = getAIClient();
-  if (!ai) {
-    throw new Error("AI features disabled: API Key is not configured.");
-  }
-
   try {
     const prompt = constructPrompt(currentText, milestones);
     

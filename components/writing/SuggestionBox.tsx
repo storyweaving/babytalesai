@@ -31,12 +31,12 @@ const SuggestionBox: React.FC<SuggestionBoxProps> = ({ suggestions, isLoading, i
         {[0, 1].map(index => (
           <div
             key={index}
-            className={`flex items-start p-4 rounded-lg border h-24 transition-all duration-300 ${
+            className={`flex items-center p-2 rounded-lg border h-12 transition-all duration-300 ${
               isSuggesting ? 'bg-green-50 border-green-300 dark:bg-green-900/30 dark:border-green-700 shadow-lg' : 'bg-gray-100 border-gray-200 dark:bg-gray-700 dark:border-gray-600'
             }`}
           >
             <span className={`text-lg font-bold mr-3 ${isSuggesting ? 'text-green-600 dark:text-green-500' : 'text-gray-400 dark:text-gray-500'}`}>#{index + 1}</span>
-            <div className="flex-grow pt-0.5 text-sm">{renderBoxContent(index)}</div>
+            <div className="flex-grow text-sm">{renderBoxContent(index)}</div>
           </div>
         ))}
       </div>

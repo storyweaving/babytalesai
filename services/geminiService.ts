@@ -1,13 +1,15 @@
-
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { MilestoneData } from '../types';
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
 const getAIClient = () => {
   const apiKey = process.env.API_KEY;
+
   if (!apiKey) {
-    throw new Error("API_KEY environment variable not set");
+    const errorMessage = "API_KEY environment variable not found. Please ensure it is configured in your project settings.";
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
   return new GoogleGenAI({ apiKey });
 };
@@ -85,6 +87,18 @@ export const getSuggestions = async (currentText: string, milestones: MilestoneD
       contents: prompt,
       config: {
         responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            suggestions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.STRING,
+              },
+              description: "Two distinct, natural-sounding continuations for the user's story.",
+            },
+          },
+        },
         thinkingConfig: { thinkingBudget: 0 },
       },
     });

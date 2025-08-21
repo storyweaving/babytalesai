@@ -261,17 +261,27 @@ const MainContent: React.FC = () => {
     const handleSuggestionSelect = useCallback((suggestion: string) => {
         if (!activeChapter) return;
     
-        const textBeforeCycle = contentAtCycleStartRef.current.trim();
-        const currentText = activeChapter.content.trim();
+        const textBeforeCycle = contentAtCycleStartRef.current;
+        const currentText = activeChapter.content;
     
-        const userTypedText = currentText.substring(textBeforeCycle.length).trim();
+        // Extract the HTML part that the user typed. This assumes append-only.
+        const userTypedHtml = currentText.substring(textBeforeCycle.length);
+    
+        // To get the plain text version for highlighting, we use a temporary element.
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = userTypedHtml;
+        const userTypedPlainText = (tempDiv.textContent || tempDiv.innerText || "").trim();
         
-        const textToHighlight = userTypedText ? `${userTypedText} ${suggestion}` : suggestion;
+        // The text to highlight is the user's plain text plus the suggestion.
+        const textToHighlight = userTypedPlainText ? `${userTypedPlainText} ${suggestion}` : suggestion;
     
+        // The new full content for the editor.
         const newFullContent = currentText + ' ' + suggestion;
         
         handleTextChange(newFullContent + ' ');
     
+        // For rendering the highlight, we provide the HTML before the change,
+        // and the plain text to be animated.
         setHighlightInfo({ highlightText: textToHighlight, textBefore: textBeforeCycle });
         
         lastTriggeredContentRef.current = newFullContent;

@@ -65,7 +65,6 @@ const ChapterList: React.FC = () => {
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center space-x-2">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Chapters</h2>
-                    <span className="flex items-center justify-center w-6 h-6 bg-green-500 text-white text-xs font-bold rounded-full">{chapters.length}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                     <button onClick={handleAddChapter} className="text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 p-1">

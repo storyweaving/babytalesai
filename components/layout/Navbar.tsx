@@ -40,6 +40,28 @@ const Navbar: React.FC = () => {
         { label: 'Menu', icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>, view: 'menu' },
     ];
 
+    const getInitials = (user: typeof state.user): string => {
+        if (!user) return '';
+    
+        const name = user.user_metadata?.name as string | undefined;
+    
+        if (name && name.trim()) {
+            const parts = name.trim().split(/\s+/);
+            if (parts.length > 1) {
+                return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+            }
+            return parts[0][0].toUpperCase();
+        }
+    
+        if (user.email) {
+            return user.email[0].toUpperCase();
+        }
+    
+        return '';
+    };
+
+    const userInitials = getInitials(state.user);
+
   return (
     <header className="flex-shrink-0 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,6 +80,14 @@ const Navbar: React.FC = () => {
             </nav>
           </div>
           <div className="flex items-center space-x-3 ml-2">
+            {state.user && userInitials && (
+                <div 
+                    className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm select-none"
+                    title={(state.user.user_metadata?.name as string) || state.user.email}
+                >
+                    {userInitials}
+                </div>
+            )}
             <button
               type="button"
               onClick={() => handleNavClick('settings')}

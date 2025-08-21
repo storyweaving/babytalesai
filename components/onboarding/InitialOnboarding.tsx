@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 
 const Step: React.FC<{ number: number; text: string; }> = ({ number, text }) => (

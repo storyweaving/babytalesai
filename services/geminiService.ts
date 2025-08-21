@@ -1,7 +1,14 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { MilestoneData } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY;
+
+if (!apiKey) {
+  throw new Error("API_KEY is not defined. Please add it to your environment variables.");
+}
+
+const ai = new GoogleGenAI({ apiKey });
 
 const MODEL_NAME = 'gemini-2.5-flash';
 

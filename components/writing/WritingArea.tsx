@@ -1,4 +1,5 @@
-import React, { forwardRef, useState, useEffect } from 'react';
+
+import React, { forwardRef, useState, useEffect, useLayoutEffect } from 'react';
 
 interface WritingAreaProps {
   content: string;
@@ -34,7 +35,7 @@ const WritingArea = forwardRef<HTMLDivElement, WritingAreaProps>(({ content, onC
     }
   }, [highlightInfo, onHighlightComplete]);
   
-  useEffect(() => {
+  useLayoutEffect(() => {
     const editor = editorRef.current;
     // Only update the DOM if the content prop is different from what's actually in the editor.
     // This prevents React from re-rendering the content on every keystroke, which would reset the cursor.
@@ -66,7 +67,7 @@ const WritingArea = forwardRef<HTMLDivElement, WritingAreaProps>(({ content, onC
 
     return (
       <div 
-        className="absolute inset-0 w-full h-full p-4 text-lg leading-relaxed bg-transparent border-none focus:ring-0 focus:outline-none dark:text-gray-200 text-gray-800 whitespace-pre-wrap overflow-y-auto"
+        className="absolute inset-0 w-full h-full px-4 pt-4 pb-16 text-lg leading-relaxed bg-transparent border-none focus:ring-0 focus:outline-none dark:text-gray-200 text-gray-800 whitespace-pre-wrap"
         aria-hidden="true"
       >
         <span dangerouslySetInnerHTML={{ __html: textBefore }} />
@@ -89,25 +90,21 @@ const WritingArea = forwardRef<HTMLDivElement, WritingAreaProps>(({ content, onC
   const highlightedContent = renderHighlightedContent();
 
   return (
-    <div className="relative flex-grow w-full h-full">
+    <div className="relative flex-grow w-full">
       {highlightedContent}
-
-      <div className={`w-full h-full p-4 text-lg leading-relaxed bg-transparent border-none rounded-md focus:ring-0 focus:outline-none transition-colors duration-200 overflow-y-auto ${
-          isLocked ? 'text-gray-400 dark:text-gray-300' : 'text-gray-800 dark:text-gray-200'
-        } ${highlightInfo ? 'opacity-0' : 'opacity-100'}`}
-      >
-        <div
-          ref={ref}
-          onInput={handleInput}
-          onMouseUp={saveSelection}
-          onKeyUp={saveSelection}
-          onFocus={saveSelection}
-          contentEditable={!(isLocked || !!highlightInfo)}
-          suppressContentEditableWarning={true}
-          data-placeholder="Start writing your story here..."
-          className="focus:outline-none whitespace-pre-wrap"
-        />
-      </div>
+      <div
+        ref={ref}
+        onInput={handleInput}
+        onMouseUp={saveSelection}
+        onKeyUp={saveSelection}
+        onFocus={saveSelection}
+        contentEditable={!(isLocked || !!highlightInfo)}
+        suppressContentEditableWarning={true}
+        data-placeholder="Start writing your story here..."
+        className={`w-full px-4 pt-4 pb-16 text-lg leading-relaxed bg-transparent border-none rounded-md focus:ring-0 focus:outline-none transition-colors duration-200 whitespace-pre-wrap ${
+            isLocked ? 'text-gray-400 dark:text-gray-300' : 'text-gray-800 dark:text-gray-200'
+          } ${highlightInfo ? 'opacity-0' : 'opacity-100'}`}
+      />
     </div>
   );
 });

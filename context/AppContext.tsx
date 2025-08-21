@@ -261,7 +261,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
         } catch (error: any) {
             console.error("Error fetching data:", error);
-            dispatch({ type: 'ADD_TOAST', payload: { message: `Error loading your story: ${error.message}`, type: ToastType.Error } });
+            const message = error?.message || "An unexpected error occurred while loading your story.";
+            dispatch({ type: 'ADD_TOAST', payload: { message: `Error: ${message}`, type: ToastType.Error } });
             dispatch({ type: 'SET_LOADING', payload: false });
         }
     };

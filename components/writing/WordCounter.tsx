@@ -35,9 +35,9 @@ const WordCounter: React.FC<WordCounterProps> = ({ currentCount, triggerCount, i
             </span>
           </div>
       )}
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-[5px]">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-[8px]">
         <div
-          className={`h-[5px] rounded-full transition-all duration-300 ease-out ${colorClass}`}
+          className={`h-[8px] rounded-full transition-all duration-300 ease-out ${colorClass}`}
           style={{ width: `${progress}%` }}
         ></div>
       </div>

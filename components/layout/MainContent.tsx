@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import WritingArea from '../writing/WritingArea';
 import SuggestionBox from '../writing/SuggestionBox';
@@ -9,6 +9,7 @@ import { getSuggestions } from '../../services/geminiService';
 import { SUGGESTION_WORD_TRIGGER } from '../../constants';
 import InitialOnboarding from '../onboarding/InitialOnboarding';
 import PostLoginOnboarding from '../onboarding/PostLoginOnboarding';
+import { ToastType } from '../../types';
 
 const MobileSelectionButtons: React.FC<{ onSelect: (suggestion: string) => void; suggestions: string[] }> = ({ onSelect, suggestions }) => (
     <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 p-4 border-t border-gray-200 dark:border-gray-700 md:hidden z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
@@ -49,7 +50,52 @@ const MainContent: React.FC = () => {
     const suggestionTriggerTimeoutRef = useRef<number | null>(null);
     const debouncedSaveRef = useRef<number | null>(null);
 
+    const scrollableContainerRef = useRef<HTMLDivElement>(null);
+    const shouldAutoScrollRef = useRef(true);
+
     const isLoggedIn = !!session;
+
+    useEffect(() => {
+        const container = scrollableContainerRef.current;
+        const editorNode = editorRef.current;
+
+        if (!container || !editorNode) {
+            return;
+        }
+
+        // Logic to detect if user has scrolled away from the bottom.
+        const handleScroll = () => {
+            const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 5;
+            shouldAutoScrollRef.current = isAtBottom;
+        };
+        container.addEventListener('scroll', handleScroll, { passive: true });
+
+        // Reset auto-scroll behavior when the chapter changes.
+        shouldAutoScrollRef.current = true;
+
+        // The function that performs the scroll if enabled.
+        const scrollToBottom = () => {
+            if (shouldAutoScrollRef.current) {
+                container.scrollTop = container.scrollHeight;
+            }
+        };
+
+        // Use ResizeObserver to trigger scrolling whenever content size changes.
+        // This is robust and handles text changes, image loads, font loads, etc.
+        const resizeObserver = new ResizeObserver(scrollToBottom);
+        resizeObserver.observe(editorNode);
+        
+        // Scroll once when the effect is first run for a new chapter.
+        // A small timeout can help ensure the layout is fully settled.
+        setTimeout(scrollToBottom, 0);
+
+        // Cleanup function.
+        return () => {
+            container.removeEventListener('scroll', handleScroll);
+            resizeObserver.disconnect();
+        };
+    }, [activeChapterId]); // Re-run this setup only when the chapter changes.
+
 
     const handleTextChange = useCallback((newContent: string) => {
         if (!activeChapter) return;
@@ -119,7 +165,7 @@ const MainContent: React.FC = () => {
     useEffect(() => {
         if (prevHighlightInfoRef.current && !highlightInfo) {
             if (editorRef.current) {
-                editorRef.current.focus();
+                editorRef.current.focus({ preventScroll: true });
                 
                 const selection = window.getSelection();
                 if (selection) {
@@ -141,6 +187,12 @@ const MainContent: React.FC = () => {
             lastTriggeredContentRef.current = initialContent;
         }
     }, [activeChapter?.id]);
+    
+    const resetSuggestionState = useCallback(() => {
+        setIsSuggesting(false);
+        setSuggestions([]);
+        setCycleWordCount(0);
+    }, []);
 
     const triggerSuggestions = useCallback(async () => {
         if (!activeChapter || isSuggesting || isLoading) return;
@@ -152,10 +204,17 @@ const MainContent: React.FC = () => {
 
         lastTriggeredContentRef.current = activeChapter.content;
 
-        const fetchedSuggestions = await getSuggestions(activeChapter.content, milestones);
-        setSuggestions(fetchedSuggestions);
-        setIsLoading(false);
-    }, [activeChapter, isSuggesting, isLoading, milestones]);
+        try {
+            const fetchedSuggestions = await getSuggestions(activeChapter.content, milestones);
+            setSuggestions(fetchedSuggestions);
+        } catch (error: any) {
+            console.error(error);
+            dispatch({ type: 'ADD_TOAST', payload: { message: error.message, type: ToastType.Error } });
+            resetSuggestionState();
+        } finally {
+            setIsLoading(false);
+        }
+    }, [activeChapter, isSuggesting, isLoading, milestones, dispatch, resetSuggestionState]);
 
     useEffect(() => {
         if (suggestionTriggerTimeoutRef.current) {
@@ -200,12 +259,6 @@ const MainContent: React.FC = () => {
         };
     }, [activeChapter?.content, triggerSuggestions, isSuggesting]);
 
-    const resetSuggestionState = useCallback(() => {
-        setIsSuggesting(false);
-        setSuggestions([]);
-        setCycleWordCount(0);
-    }, []);
-    
     const handleSuggestionSelect = useCallback((suggestion: string) => {
         if (!activeChapter) return;
         
@@ -231,7 +284,7 @@ const MainContent: React.FC = () => {
         lastTriggeredContentRef.current = activeChapter.content;
         contentAtCycleStartRef.current = activeChapter.content;
         resetSuggestionState();
-        editorRef.current?.focus(); // Re-focus editor on skip
+        editorRef.current?.focus({ preventScroll: true }); // Re-focus editor on skip
     }, [activeChapter, resetSuggestionState]);
 
     const handleSelectionChange = useCallback((range: Range) => {
@@ -284,17 +337,17 @@ const MainContent: React.FC = () => {
     }
 
     return (
-        <div className="flex-grow flex flex-col p-4 md:p-6 lg:p-8 bg-white dark:bg-gray-800 m-2 md:m-4 rounded-lg shadow-inner pb-28 md:pb-4 min-h-0">
+        <div className="flex-grow flex flex-col pt-[5px] px-4 pb-4 md:px-6 md:pb-6 lg:px-8 lg:pb-8 bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner pb-28 md:pb-4 min-h-0">
             <ChapterTabs />
-            <div className="flex-grow flex flex-col relative min-h-0">
-                <div className="py-2 flex-shrink-0">
-                    <WordCounter 
-                        currentCount={cycleWordCount} 
-                        triggerCount={SUGGESTION_WORD_TRIGGER} 
-                        isTriggered={isSuggesting} 
-                        showText={false} 
-                    />
-                </div>
+            <div className="mt-2 flex-shrink-0">
+                <WordCounter 
+                    currentCount={cycleWordCount} 
+                    triggerCount={SUGGESTION_WORD_TRIGGER} 
+                    isTriggered={isSuggesting} 
+                    showText={false} 
+                />
+            </div>
+            <div ref={scrollableContainerRef} className="flex-grow flex flex-col relative min-h-0 overflow-y-auto">
                 {renderOnboardingOrWritingArea()}
             </div>
             <div className="flex-shrink-0 mt-4">

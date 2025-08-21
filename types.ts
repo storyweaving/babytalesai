@@ -1,3 +1,4 @@
+
 export type Database = {
   public: {
     Tables: {
@@ -86,12 +87,20 @@ export type Database = {
         };
       };
     };
-    Views: {};
-    Functions: {};
-    Enums: {};
-    CompositeTypes: {};
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
-}
+};
 
 
 export type Chapter = Database['public']['Tables']['chapters']['Row'];

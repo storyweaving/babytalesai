@@ -1,4 +1,3 @@
-
 import React, { forwardRef, useState, useEffect, useLayoutEffect } from 'react';
 
 interface WritingAreaProps {
@@ -101,7 +100,7 @@ const WritingArea = forwardRef<HTMLDivElement, WritingAreaProps>(({ content, onC
         contentEditable={!(isLocked || !!highlightInfo)}
         suppressContentEditableWarning={true}
         data-placeholder="Start writing your story here..."
-        className={`w-full px-4 pt-4 pb-16 text-lg leading-relaxed bg-transparent border-none rounded-md focus:ring-0 focus:outline-none transition-colors duration-200 whitespace-pre-wrap ${
+        className={`editor-area w-full px-4 pt-4 pb-16 text-lg leading-relaxed bg-transparent border-none rounded-md focus:ring-0 focus:outline-none transition-colors duration-200 whitespace-pre-wrap ${
             isLocked ? 'text-gray-400 dark:text-gray-300' : 'text-gray-800 dark:text-gray-200'
           } ${highlightInfo ? 'opacity-0' : 'opacity-100'}`}
       />

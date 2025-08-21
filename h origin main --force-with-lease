@@ -1,0 +1,41 @@
+[33mcommit 3bf3151a3d9392e14fc4e7978392059333961a33[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: michael kelly <142418179+storyweaving@users.noreply.github.com>
+Date:   Thu Aug 21 09:07:25 2025 -0400
+
+    8-21-2025 9:00
+
+ .gitignore                                    |   24 [32m+[m
+ App.tsx                                       |   58 [32m+[m
+ README.md                                     |   20 [32m+[m
+ components/auth/Auth.tsx                      |  157 [32m+++[m
+ components/cockpit/ChapterList.tsx            |  131 [32m++[m
+ components/cockpit/MenuView.tsx               |   65 [32m+[m
+ components/cockpit/MilestonesForm.tsx         |  124 [32m++[m
+ components/cockpit/PicturesView.tsx           |   87 [32m++[m
+ components/layout/GlassCockpit.tsx            |  252 [32m++++[m
+ components/layout/MainContent.tsx             |  375 [32m++++++[m
+ components/layout/Navbar.tsx                  |   79 [32m++[m
+ components/onboarding/InitialOnboarding.tsx   |   21 [32m+[m
+ components/onboarding/LoggedInOnboarding.tsx  |   58 [32m+[m
+ components/onboarding/OnboardingGuide.tsx     |    8 [32m+[m
+ components/onboarding/PostLoginOnboarding.tsx |   48 [32m+[m
+ components/ui/Icon.tsx                        |   12 [32m+[m
+ components/ui/Toaster.tsx                     |   72 [32m++[m
+ components/writing/ChapterTabs.tsx            |   90 [32m++[m
+ components/writing/SuggestionBox.tsx          |   60 [32m+[m
+ components/writing/WordCounter.tsx            |   48 [32m+[m
+ components/writing/WritingArea.tsx            |  111 [32m++[m
+ constants.ts                                  |    1 [32m+[m
+ context/AppContext.tsx                        |  380 [32m++++++[m
+ hooks/useLocalStorage.ts                      |   31 [32m+[m
+ index.html                                    |   64 [32m+[m
+ index.tsx                                     |   16 [32m+[m
+ metadata.json                                 |    7 [32m+[m
+ package-lock.json                             | 1598 [32m+++++++++++++++++++++++++[m
+ package.json                                  |   23 [32m+[m
+ services/geminiService.ts                     |  115 [32m++[m
+ services/supabaseClient.ts                    |   11 [32m+[m
+ tsconfig.json                                 |   29 [32m+[m
+ types.ts                                      |  131 [32m++[m
+ vite.config.ts                                |   17 [32m+[m
+ 34 files changed, 4323 insertions(+)

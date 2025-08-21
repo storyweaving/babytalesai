@@ -1,3 +1,4 @@
+
 import React, { forwardRef, useState, useEffect, useLayoutEffect } from 'react';
 
 interface WritingAreaProps {

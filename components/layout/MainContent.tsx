@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import WritingArea from '../writing/WritingArea';

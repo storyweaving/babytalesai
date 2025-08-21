@@ -1,4 +1,3 @@
-
 export type Database = {
   public: {
     Tables: {
@@ -27,6 +26,7 @@ export type Database = {
           word_count?: number;
           sort_order?: number;
         };
+        Relationships: [];
       };
       milestones: {
         Row: {
@@ -72,6 +72,7 @@ export type Database = {
           favorite_memories?: string | null;
           parent_wishes?: string | null;
         };
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -85,6 +86,7 @@ export type Database = {
         Update: {
           name?: string | null;
         };
+        Relationships: [];
       };
     };
     Views: {

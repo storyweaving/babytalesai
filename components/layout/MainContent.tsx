@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import WritingArea from '../writing/WritingArea';
@@ -261,13 +260,19 @@ const MainContent: React.FC = () => {
 
     const handleSuggestionSelect = useCallback((suggestion: string) => {
         if (!activeChapter) return;
-        
+    
+        const textBeforeCycle = contentAtCycleStartRef.current.trim();
         const currentText = activeChapter.content.trim();
+    
+        const userTypedText = currentText.substring(textBeforeCycle.length).trim();
+        
+        const textToHighlight = userTypedText ? `${userTypedText} ${suggestion}` : suggestion;
+    
         const newFullContent = currentText + ' ' + suggestion;
         
         handleTextChange(newFullContent + ' ');
-
-        setHighlightInfo({ highlightText: suggestion, textBefore: currentText });
+    
+        setHighlightInfo({ highlightText: textToHighlight, textBefore: textBeforeCycle });
         
         lastTriggeredContentRef.current = newFullContent;
         contentAtCycleStartRef.current = newFullContent;

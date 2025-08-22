@@ -71,17 +71,21 @@
         background-color: #4b5563; /* gray-600 */
       }
       /* Styles for embedded story images */
-      .editor-area .story-image {
+      .editor-area .story-image-container {
         float: right;
         clear: right;
         margin: 0 0 1rem 1rem;
-        max-width: 125px; /* Mobile size */
+        max-width: 100px; /* Mobile size */
+      }
+      .editor-area .story-image {
+        display: block;
+        width: 100%;
         height: auto;
         border-radius: 0.5rem;
         box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
       }
       @media (min-width: 768px) { /* md breakpoint */
-        .editor-area .story-image {
+        .editor-area .story-image-container {
           max-width: 250px; /* Desktop size */
         }
       }

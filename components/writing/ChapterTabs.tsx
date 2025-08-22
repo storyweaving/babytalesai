@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
@@ -44,7 +43,7 @@ const ChapterTabs: React.FC = () => {
 
 
   return (
-    <div className="flex-shrink-0">
+    <div className="flex-shrink-0 hidden md:block">
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2 flex-shrink-0">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Chapters:</span>

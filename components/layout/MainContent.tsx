@@ -358,7 +358,7 @@ const MainContent: React.FC = () => {
     return (
         <div className="flex-grow flex flex-col pt-[5px] px-4 pb-4 md:px-6 md:pb-6 lg:px-8 lg:pb-8 bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner pb-28 md:pb-4 min-h-0">
             <ChapterTabs />
-            <div className="mt-2 flex-shrink-0">
+            <div className="md:mt-2 flex-shrink-0">
                 <WordCounter 
                     currentCount={cycleWordCount} 
                     triggerCount={SUGGESTION_WORD_TRIGGER} 

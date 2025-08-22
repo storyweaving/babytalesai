@@ -134,24 +134,29 @@ const MainContent: React.FC = () => {
                 selection.removeAllRanges();
                 selection.addRange(endRange);
             }
+            
+            const figure = document.createElement('figure');
+            figure.className = 'story-image-container';
+            figure.setAttribute('contenteditable', 'false');
 
             const img = document.createElement('img');
             img.src = state.imageToInsert;
             img.className = 'story-image';
-            img.setAttribute('contenteditable', 'false');
+            
+            figure.appendChild(img);
 
             if (selection.rangeCount > 0) {
                 const currentRange = selection.getRangeAt(0);
                 currentRange.deleteContents();
-                currentRange.insertNode(img);
+                currentRange.insertNode(figure);
 
                 const newRange = document.createRange();
-                newRange.setStartAfter(img);
+                newRange.setStartAfter(figure);
                 newRange.collapse(true);
                 selection.removeAllRanges();
                 selection.addRange(newRange);
             } else {
-                editor.appendChild(img);
+                editor.appendChild(figure);
             }
             
             handleTextChange(editor.innerHTML);

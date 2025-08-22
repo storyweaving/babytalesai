@@ -137,8 +137,7 @@ const MainContent: React.FC = () => {
 
             const img = document.createElement('img');
             img.src = state.imageToInsert;
-            const imageStyle = "float: right; clear: right; margin: 0 0 1rem 1rem; max-width: 250px; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);";
-            img.setAttribute('style', imageStyle);
+            img.className = 'story-image';
             img.setAttribute('contenteditable', 'false');
 
             if (selection.rangeCount > 0) {

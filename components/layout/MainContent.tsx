@@ -60,8 +60,7 @@ const MainContent: React.FC = () => {
 
     useLayoutEffect(() => {
         const mainEl = mainContentContainerRef.current;
-        const isMobile = window.matchMedia("(max-width: 767px)").matches;
-        if (!isMobile || !window.visualViewport || !mainEl) return;
+        if (typeof window === 'undefined' || !window.visualViewport || !mainEl) return;
 
         const handleResize = () => {
             // Set keyboard height for suggestion box visibility
@@ -365,9 +364,9 @@ const MainContent: React.FC = () => {
     }
 
     return (
-        <div ref={mainContentContainerRef} className={`flex-grow flex flex-col bg-white dark:bg-gray-800 mt-[3px] md:mt-2 mx-0 md:mx-4 mb-0 md:mb-4 rounded-none md:rounded-lg shadow-inner min-h-0 overflow-hidden`}>
+        <div ref={mainContentContainerRef} className={`flex-grow flex flex-col bg-white dark:bg-gray-800 mt-0 md:mt-2 mx-0 md:mx-4 mb-0 md:mb-4 rounded-none md:rounded-lg shadow-inner min-h-0 overflow-hidden`}>
             {/* --- TOP FIXED SECTION --- */}
-            <div className="flex-shrink-0 pt-0 md:pt-[5px] px-4 md:px-6 lg:px-8">
+            <div className="flex-shrink-0 pt-[3px] md:pt-[5px] px-4 md:px-6 lg:px-8">
                 <ChapterTabs />
                 <div className="md:mt-2 flex-shrink-0">
                     <WordCounter 

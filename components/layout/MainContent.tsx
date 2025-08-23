@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import WritingArea from '../writing/WritingArea';
 import SuggestionBox from '../writing/SuggestionBox';
@@ -52,29 +52,35 @@ const MainContent: React.FC = () => {
 
     const scrollableContainerRef = useRef<HTMLDivElement>(null);
     const shouldAutoScrollRef = useRef(true);
+    const mainContentContainerRef = useRef<HTMLDivElement>(null);
 
     const isLoggedIn = !!session;
 
     const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
+        const mainEl = mainContentContainerRef.current;
         const isMobile = window.matchMedia("(max-width: 767px)").matches;
-        if (!isMobile || !window.visualViewport) return;
+        if (!isMobile || !window.visualViewport || !mainEl) return;
 
         const handleResize = () => {
+            // Set keyboard height for suggestion box visibility
             const newKeyboardHeight = window.innerHeight - window.visualViewport.height;
-            // A threshold to detect keyboard reliably
-            if (newKeyboardHeight > 100) {
-                setKeyboardHeight(newKeyboardHeight);
-            } else {
-                setKeyboardHeight(0);
-            }
+            setKeyboardHeight(newKeyboardHeight > 100 ? newKeyboardHeight : 0);
+            
+            // Set container height to prevent body scrolling
+            // Navbar is h-10 (40px). Margins are mt-1 (4px) and mb-2 (8px). Total offset = 52px
+            const availableHeight = window.visualViewport.height - 40 - 4 - 8;
+            mainEl.style.height = `${availableHeight}px`;
         };
 
         window.visualViewport.addEventListener('resize', handleResize);
         handleResize(); // Initial check
 
-        return () => window.visualViewport.removeEventListener('resize', handleResize);
+        return () => {
+            window.visualViewport?.removeEventListener('resize', handleResize);
+            if(mainEl) mainEl.style.height = ''; // Cleanup style
+        };
     }, []);
 
     useEffect(() => {
@@ -85,38 +91,30 @@ const MainContent: React.FC = () => {
             return;
         }
 
-        // Logic to detect if user has scrolled away from the bottom.
         const handleScroll = () => {
             const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 5;
             shouldAutoScrollRef.current = isAtBottom;
         };
         container.addEventListener('scroll', handleScroll, { passive: true });
 
-        // Reset auto-scroll behavior when the chapter changes.
         shouldAutoScrollRef.current = true;
 
-        // The function that performs the scroll if enabled.
         const scrollToBottom = () => {
             if (shouldAutoScrollRef.current) {
                 container.scrollTop = container.scrollHeight;
             }
         };
 
-        // Use ResizeObserver to trigger scrolling whenever content size changes.
-        // This is robust and handles text changes, image loads, font loads, etc.
         const resizeObserver = new ResizeObserver(scrollToBottom);
         resizeObserver.observe(editorNode);
         
-        // Scroll once when the effect is first run for a new chapter.
-        // A small timeout can help ensure the layout is fully settled.
         setTimeout(scrollToBottom, 0);
 
-        // Cleanup function.
         return () => {
             container.removeEventListener('scroll', handleScroll);
             resizeObserver.disconnect();
         };
-    }, [activeChapterId]); // Re-run this setup only when the chapter changes.
+    }, [activeChapterId]);
 
 
     const handleTextChange = useCallback((newContent: string) => {
@@ -223,7 +221,7 @@ const MainContent: React.FC = () => {
     const triggerSuggestions = useCallback(async () => {
         if (!activeChapter || isSuggesting || isLoading) return;
         
-        editorRef.current?.blur(); // Hide keyboard on mobile by removing focus
+        editorRef.current?.blur();
 
         setIsSuggesting(true);
         setIsLoading(true);
@@ -291,24 +289,18 @@ const MainContent: React.FC = () => {
         const textBeforeCycle = contentAtCycleStartRef.current;
         const currentText = activeChapter.content;
     
-        // Extract the HTML part that the user typed. This assumes append-only.
         const userTypedHtml = currentText.substring(textBeforeCycle.length);
     
-        // To get the plain text version for highlighting, we use a temporary element.
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = userTypedHtml;
         const userTypedPlainText = (tempDiv.textContent || tempDiv.innerText || "").trim();
         
-        // The text to highlight is the user's plain text plus the suggestion.
         const textToHighlight = userTypedPlainText ? `${userTypedPlainText} ${suggestion}` : suggestion;
     
-        // The new full content for the editor.
         const newFullContent = currentText + ' ' + suggestion;
         
         handleTextChange(newFullContent + ' ');
     
-        // For rendering the highlight, we provide the HTML before the change,
-        // and the plain text to be animated.
         setHighlightInfo({ highlightText: textToHighlight, textBefore: textBeforeCycle });
         
         lastTriggeredContentRef.current = newFullContent;
@@ -326,7 +318,7 @@ const MainContent: React.FC = () => {
         lastTriggeredContentRef.current = activeChapter.content;
         contentAtCycleStartRef.current = activeChapter.content;
         resetSuggestionState();
-        editorRef.current?.focus({ preventScroll: true }); // Re-focus editor on skip
+        editorRef.current?.focus({ preventScroll: true });
     }, [activeChapter, resetSuggestionState]);
 
     const handleSelectionChange = useCallback((range: Range) => {
@@ -379,7 +371,7 @@ const MainContent: React.FC = () => {
     }
 
     return (
-        <div className={`flex-grow flex flex-col bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner min-h-0 overflow-hidden`}>
+        <div ref={mainContentContainerRef} className={`flex-grow flex flex-col bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner min-h-0 overflow-hidden`}>
             {/* --- TOP FIXED SECTION --- */}
             <div className="flex-shrink-0 pt-[5px] px-4 md:px-6 lg:px-8">
                 <ChapterTabs />
@@ -430,4 +422,3 @@ const MainContent: React.FC = () => {
 };
 
 export default MainContent;
-

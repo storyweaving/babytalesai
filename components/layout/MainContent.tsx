@@ -67,11 +67,6 @@ const MainContent: React.FC = () => {
             // Set keyboard height for suggestion box visibility
             const newKeyboardHeight = window.innerHeight - window.visualViewport.height;
             setKeyboardHeight(newKeyboardHeight > 100 ? newKeyboardHeight : 0);
-            
-            // Set container height to prevent body scrolling
-            // Navbar is h-10 (40px). Margins are mt-1 (4px) and mb-2 (8px). Total offset = 52px
-            const availableHeight = window.visualViewport.height - 40 - 4 - 8;
-            mainEl.style.height = `${availableHeight}px`;
         };
 
         window.visualViewport.addEventListener('resize', handleResize);
@@ -79,7 +74,6 @@ const MainContent: React.FC = () => {
 
         return () => {
             window.visualViewport?.removeEventListener('resize', handleResize);
-            if(mainEl) mainEl.style.height = ''; // Cleanup style
         };
     }, []);
 
@@ -371,9 +365,9 @@ const MainContent: React.FC = () => {
     }
 
     return (
-        <div ref={mainContentContainerRef} className={`flex-grow flex flex-col bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner min-h-0 overflow-hidden`}>
+        <div ref={mainContentContainerRef} className={`flex-grow flex flex-col bg-white dark:bg-gray-800 mt-[3px] md:mt-2 mx-0 md:mx-4 mb-0 md:mb-4 rounded-none md:rounded-lg shadow-inner min-h-0 overflow-hidden`}>
             {/* --- TOP FIXED SECTION --- */}
-            <div className="flex-shrink-0 pt-[5px] px-4 md:px-6 lg:px-8">
+            <div className="flex-shrink-0 pt-0 md:pt-[5px] px-4 md:px-6 lg:px-8">
                 <ChapterTabs />
                 <div className="md:mt-2 flex-shrink-0">
                     <WordCounter 
@@ -394,7 +388,7 @@ const MainContent: React.FC = () => {
             
             {/* --- BOTTOM FIXED SECTION --- */}
             <div
-                className={`flex-shrink-0 px-4 pt-2 ${keyboardHeight > 0 ? 'pb-1' : 'pb-4'} md:px-6 md:pb-6 lg:px-8 lg:pb-8`}
+                className={`flex-shrink-0 px-4 pt-2 ${keyboardHeight > 0 ? 'pb-[3px]' : 'pb-4'} md:px-6 md:pb-6 lg:px-8 lg:pb-8`}
             >
                 <WordCounter 
                     currentCount={cycleWordCount} 

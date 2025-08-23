@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Navbar from './components/layout/Navbar';
 import MainContent from './components/layout/MainContent';
@@ -21,6 +21,7 @@ const LoadingSpinner = () => (
 
 const ThemedApp = () => {
   const { state } = useAppContext();
+  const [appHeight, setAppHeight] = useState('100vh');
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -31,12 +32,31 @@ const ThemedApp = () => {
     }
   }, [state.theme]);
 
+  useEffect(() => {
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (!isMobile || !window.visualViewport) {
+        return;
+    };
+
+    const handleResize = () => {
+      setAppHeight(`${window.visualViewport.height}px`);
+    };
+
+    window.visualViewport.addEventListener('resize', handleResize);
+    handleResize(); // Initial set
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+
   if (state.isLoading) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-300 font-sans">
+    <div style={{ height: appHeight }} className="flex flex-col bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-300 font-sans overflow-hidden">
       <Navbar />
       <main className="flex-grow flex flex-col md:flex-row overflow-hidden">
         <MainContent />

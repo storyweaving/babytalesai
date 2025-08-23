@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import WritingArea from '../writing/WritingArea';
 import SuggestionBox from '../writing/SuggestionBox';
@@ -56,8 +56,6 @@ const MainContent: React.FC = () => {
     const isLoggedIn = !!session;
 
     const [keyboardHeight, setKeyboardHeight] = useState(0);
-    const progressBarContainerRef = useRef<HTMLDivElement>(null);
-    const [progressBarHeight, setProgressBarHeight] = useState(0);
 
     useEffect(() => {
         const isMobile = window.matchMedia("(max-width: 767px)").matches;
@@ -78,13 +76,6 @@ const MainContent: React.FC = () => {
 
         return () => window.visualViewport.removeEventListener('resize', handleResize);
     }, []);
-
-    useLayoutEffect(() => {
-        if (progressBarContainerRef.current) {
-            setProgressBarHeight(progressBarContainerRef.current.offsetHeight);
-        }
-    }, [suggestions, isLoading, isSuggesting, keyboardHeight]);
-
 
     useEffect(() => {
         const container = scrollableContainerRef.current;
@@ -388,7 +379,7 @@ const MainContent: React.FC = () => {
     }
 
     return (
-        <div className={`flex-grow flex flex-col pt-[5px] px-4 pb-4 md:px-6 md:pb-6 lg:px-8 lg:pb-8 bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner min-h-0 ${keyboardHeight > 0 ? '' : 'pb-28'} md:pb-4`}>
+        <div className={`flex-grow flex flex-col pt-[5px] px-4 pb-4 md:px-6 md:pb-6 lg:px-8 lg:pb-8 bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner min-h-0 ${keyboardHeight > 0 ? 'pb-1' : 'pb-28'} md:pb-4`}>
             <ChapterTabs />
             <div className="md:mt-2 flex-shrink-0">
                 <WordCounter 
@@ -400,22 +391,11 @@ const MainContent: React.FC = () => {
             </div>
             <div ref={scrollableContainerRef} 
                  className="flex-grow flex flex-col relative min-h-0 overflow-y-auto"
-                 style={{paddingBottom: keyboardHeight > 0 ? `${progressBarHeight}px` : '0'}}
                  >
                 {renderOnboardingOrWritingArea()}
             </div>
             <div
-                ref={progressBarContainerRef}
-                className={`flex-shrink-0 md:static ${keyboardHeight > 0 ? '' : 'mt-4'}`}
-                style={keyboardHeight > 0 ? {
-                    position: 'fixed',
-                    bottom: `${keyboardHeight + 3}px`,
-                    left: '0.5rem',
-                    right: '0.5rem',
-                    padding: '0.5rem 1rem',
-                    backgroundColor: state.theme === 'dark' ? 'rgb(31 41 55)' : 'white',
-                    zIndex: 20,
-                } : {}}
+                className={`flex-shrink-0 pt-2 md:static ${keyboardHeight > 0 ? '' : 'mt-4'}`}
             >
                 <WordCounter 
                     currentCount={cycleWordCount} 

@@ -379,23 +379,30 @@ const MainContent: React.FC = () => {
     }
 
     return (
-        <div className={`flex-grow flex flex-col pt-[5px] px-4 pb-4 md:px-6 md:pb-6 lg:px-8 lg:pb-8 bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner min-h-0 ${keyboardHeight > 0 ? 'pb-1' : 'pb-28'} md:pb-4`}>
-            <ChapterTabs />
-            <div className="md:mt-2 flex-shrink-0">
-                <WordCounter 
-                    currentCount={cycleWordCount} 
-                    triggerCount={SUGGESTION_WORD_TRIGGER} 
-                    isTriggered={isSuggesting} 
-                    showText={false} 
-                />
+        <div className={`flex-grow flex flex-col bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner min-h-0 overflow-hidden`}>
+            {/* --- TOP FIXED SECTION --- */}
+            <div className="flex-shrink-0 pt-[5px] px-4 md:px-6 lg:px-8">
+                <ChapterTabs />
+                <div className="md:mt-2 flex-shrink-0">
+                    <WordCounter 
+                        currentCount={cycleWordCount} 
+                        triggerCount={SUGGESTION_WORD_TRIGGER} 
+                        isTriggered={isSuggesting} 
+                        showText={false} 
+                    />
+                </div>
             </div>
+            
+            {/* --- SCROLLABLE MIDDLE SECTION --- */}
             <div ref={scrollableContainerRef} 
                  className="flex-grow flex flex-col relative min-h-0 overflow-y-auto"
                  >
                 {renderOnboardingOrWritingArea()}
             </div>
+            
+            {/* --- BOTTOM FIXED SECTION --- */}
             <div
-                className={`flex-shrink-0 pt-2 md:static ${keyboardHeight > 0 ? '' : 'mt-4'}`}
+                className={`flex-shrink-0 px-4 pt-2 ${keyboardHeight > 0 ? 'pb-1' : 'pb-4'} md:px-6 md:pb-6 lg:px-8 lg:pb-8`}
             >
                 <WordCounter 
                     currentCount={cycleWordCount} 
@@ -411,6 +418,7 @@ const MainContent: React.FC = () => {
                     />
                 )}
             </div>
+
              {isSuggesting && !isLoading && suggestions.length > 0 && (
                 <MobileSelectionButtons
                     suggestions={suggestions}
@@ -422,3 +430,4 @@ const MainContent: React.FC = () => {
 };
 
 export default MainContent;
+

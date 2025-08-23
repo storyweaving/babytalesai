@@ -54,6 +54,37 @@ const MainContent: React.FC = () => {
 
     const isLoggedIn = !!session;
 
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const progressBarContainerRef = useRef<HTMLDivElement>(null);
+    const [progressBarHeight, setProgressBarHeight] = useState(0);
+
+    useEffect(() => {
+        const isMobile = window.matchMedia("(max-width: 767px)").matches;
+        if (!isMobile || !window.visualViewport) return;
+
+        const handleResize = () => {
+            const newKeyboardHeight = window.innerHeight - window.visualViewport.height;
+            // A threshold to detect keyboard reliably
+            if (newKeyboardHeight > 100) {
+                setKeyboardHeight(newKeyboardHeight);
+            } else {
+                setKeyboardHeight(0);
+            }
+        };
+
+        window.visualViewport.addEventListener('resize', handleResize);
+        handleResize(); // Initial check
+
+        return () => window.visualViewport.removeEventListener('resize', handleResize);
+    }, []);
+
+    useLayoutEffect(() => {
+        if (progressBarContainerRef.current) {
+            setProgressBarHeight(progressBarContainerRef.current.offsetHeight);
+        }
+    }, [suggestions, isLoading, isSuggesting]);
+
+
     useEffect(() => {
         const container = scrollableContainerRef.current;
         const editorNode = editorRef.current;
@@ -356,7 +387,7 @@ const MainContent: React.FC = () => {
     }
 
     return (
-        <div className="flex-grow flex flex-col pt-[5px] px-4 pb-4 md:px-6 md:pb-6 lg:px-8 lg:pb-8 bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner pb-28 md:pb-4 min-h-0">
+        <div className={`flex-grow flex flex-col pt-[5px] px-4 pb-4 md:px-6 md:pb-6 lg:px-8 lg:pb-8 bg-white dark:bg-gray-800 mt-1 md:mt-2 mx-2 md:mx-4 mb-2 md:mb-4 rounded-lg shadow-inner min-h-0 ${keyboardHeight > 0 ? '' : 'pb-28'} md:pb-4`}>
             <ChapterTabs />
             <div className="md:mt-2 flex-shrink-0">
                 <WordCounter 
@@ -366,10 +397,26 @@ const MainContent: React.FC = () => {
                     showText={false} 
                 />
             </div>
-            <div ref={scrollableContainerRef} className="flex-grow flex flex-col relative min-h-0 overflow-y-auto">
+            <div ref={scrollableContainerRef} 
+                 className="flex-grow flex flex-col relative min-h-0 overflow-y-auto"
+                 style={{paddingBottom: keyboardHeight > 0 ? `${progressBarHeight}px` : '0'}}
+                 >
                 {renderOnboardingOrWritingArea()}
             </div>
-            <div className="flex-shrink-0 mt-4">
+            <div
+                ref={progressBarContainerRef}
+                className={`flex-shrink-0 md:static ${keyboardHeight > 0 ? '' : 'mt-4'}`}
+                style={keyboardHeight > 0 ? {
+                    position: 'fixed',
+                    bottom: `${keyboardHeight + 3}px`,
+                    left: '0.5rem',
+                    right: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    backgroundColor: state.theme === 'dark' ? 'rgb(31 41 55)' : 'white',
+                    borderTop: `1px solid ${state.theme === 'dark' ? 'rgb(55 65 81)' : 'rgb(229 231 235)'}`,
+                    zIndex: 20,
+                } : {}}
+            >
                 <WordCounter 
                     currentCount={cycleWordCount} 
                     triggerCount={SUGGESTION_WORD_TRIGGER} 

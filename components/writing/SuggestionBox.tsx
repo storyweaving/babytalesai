@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface SuggestionBoxProps {
@@ -6,9 +5,10 @@ interface SuggestionBoxProps {
   isLoading: boolean;
   isSuggesting: boolean;
   onSelect: (suggestion: string) => void;
+  isMobileKeyboardActive?: boolean;
 }
 
-const SuggestionBox: React.FC<SuggestionBoxProps> = ({ suggestions, isLoading, isSuggesting, onSelect }) => {
+const SuggestionBox: React.FC<SuggestionBoxProps> = ({ suggestions, isLoading, isSuggesting, onSelect, isMobileKeyboardActive }) => {
   const renderBoxContent = (index: number) => {
     if (isLoading) {
       return (
@@ -26,7 +26,10 @@ const SuggestionBox: React.FC<SuggestionBoxProps> = ({ suggestions, isLoading, i
   };
 
   return (
-    <div className="mt-2">
+    <div
+      className={!isMobileKeyboardActive ? "mt-2" : undefined}
+      style={isMobileKeyboardActive ? { marginTop: '3px' } : undefined}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[0, 1].map(index => (
           <div

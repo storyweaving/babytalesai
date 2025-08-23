@@ -83,7 +83,7 @@ const MainContent: React.FC = () => {
         if (progressBarContainerRef.current) {
             setProgressBarHeight(progressBarContainerRef.current.offsetHeight);
         }
-    }, [suggestions, isLoading, isSuggesting]);
+    }, [suggestions, isLoading, isSuggesting, keyboardHeight]);
 
 
     useEffect(() => {
@@ -409,12 +409,11 @@ const MainContent: React.FC = () => {
                 className={`flex-shrink-0 md:static ${keyboardHeight > 0 ? '' : 'mt-4'}`}
                 style={keyboardHeight > 0 ? {
                     position: 'fixed',
-                    bottom: `${keyboardHeight + 4}px`,
+                    bottom: `${keyboardHeight + 3}px`,
                     left: '0.5rem',
                     right: '0.5rem',
                     padding: '0.5rem 1rem',
                     backgroundColor: state.theme === 'dark' ? 'rgb(31 41 55)' : 'white',
-                    borderTop: `1px solid ${state.theme === 'dark' ? 'rgb(55 65 81)' : 'rgb(229 231 235)'}`,
                     zIndex: 20,
                 } : {}}
             >
@@ -423,12 +422,14 @@ const MainContent: React.FC = () => {
                     triggerCount={SUGGESTION_WORD_TRIGGER} 
                     isTriggered={isSuggesting} 
                 />
-                <SuggestionBox 
-                    suggestions={suggestions} 
-                    isLoading={isLoading}
-                    isSuggesting={isSuggesting}
-                    onSelect={handleSuggestionSelect} 
-                />
+                {keyboardHeight === 0 && (
+                    <SuggestionBox 
+                        suggestions={suggestions} 
+                        isLoading={isLoading}
+                        isSuggesting={isSuggesting}
+                        onSelect={handleSuggestionSelect} 
+                    />
+                )}
             </div>
              {isSuggesting && !isLoading && suggestions.length > 0 && (
                 <MobileSelectionButtons

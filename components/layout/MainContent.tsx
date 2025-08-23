@@ -408,7 +408,7 @@ const MainContent: React.FC = () => {
                 className={`flex-shrink-0 md:static ${keyboardHeight > 0 ? '' : 'mt-4'}`}
                 style={keyboardHeight > 0 ? {
                     position: 'fixed',
-                    bottom: `${keyboardHeight + 4}px`,
+                    bottom: `${keyboardHeight + 3}px`,
                     left: '0.5rem',
                     right: '0.5rem',
                     padding: '0.5rem 1rem',
@@ -426,8 +426,7 @@ const MainContent: React.FC = () => {
                     suggestions={suggestions} 
                     isLoading={isLoading}
                     isSuggesting={isSuggesting}
-                    onSelect={handleSuggestionSelect}
-                    isMobileKeyboardActive={keyboardHeight > 0} 
+                    onSelect={handleSuggestionSelect} 
                 />
             </div>
              {isSuggesting && !isLoading && suggestions.length > 0 && (

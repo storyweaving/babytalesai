@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import WritingArea from '../writing/WritingArea';
@@ -408,7 +409,7 @@ const MainContent: React.FC = () => {
                 className={`flex-shrink-0 md:static ${keyboardHeight > 0 ? '' : 'mt-4'}`}
                 style={keyboardHeight > 0 ? {
                     position: 'fixed',
-                    bottom: `${keyboardHeight + 3}px`,
+                    bottom: `${keyboardHeight + 4}px`,
                     left: '0.5rem',
                     right: '0.5rem',
                     padding: '0.5rem 1rem',

@@ -1,116 +1,382 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import { MilestoneData } from '../types';
+import React, { createContext, useReducer, useEffect, ReactNode, Dispatch, useCallback } from 'react';
+import { Chapter, MilestoneData, CockpitView, ToastType, Theme, Database } from '../types';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { supabase } from '../services/supabaseClient';
+import { Session, User, SignInWithPasswordCredentials, SignUpWithPasswordCredentials, AuthResponse } from '@supabase/supabase-js';
 
-const apiKey = process.env.API_KEY;
-
-if (!apiKey) {
-  throw new Error("API_KEY is not defined. Please add it to your environment variables.");
+interface AppState {
+  chapters: Chapter[];
+  activeChapterId: string | null;
+  milestones: MilestoneData;
+  cockpitView: CockpitView;
+  toasts: { id: number; message: string; type: ToastType }[];
+  theme: Theme;
+  isLoading: boolean;
+  session: Session | null;
+  user: User | null;
+  lastSelection: Range | null;
+  imageToInsert: string | null;
+  onboardingStep: number; // 0=off, 1=milestones, 2=chapter title, 3=first words, 4=complete
 }
 
-const ai = new GoogleGenAI({ apiKey });
+type Action =
+  | { type: 'SET_INITIAL_DATA'; payload: { chapters: Chapter[], milestones: MilestoneData } }
+  | { type: 'ADD_CHAPTER_SUCCESS'; payload: Chapter }
+  | { type: 'UPDATE_CHAPTER_CONTENT'; payload: { id: string; content: string, word_count: number } }
+  | { type: 'UPDATE_CHAPTER_NAME_SUCCESS'; payload: { id: string; name: string } }
+  | { type: 'SET_ACTIVE_CHAPTER'; payload: string | null }
+  | { type: 'SET_MILESTONES_SUCCESS'; payload: MilestoneData }
+  | { type: 'SET_COCKPIT_VIEW'; payload: CockpitView }
+  | { type: 'ADD_TOAST'; payload: { message: string; type: ToastType } }
+  | { type: 'REMOVE_TOAST'; payload: number }
+  | { type: 'SET_THEME'; payload: Theme }
+  | { type: 'SET_SESSION'; payload: Session | null }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_LAST_SELECTION'; payload: Range | null }
+  | { type: 'REQUEST_IMAGE_INSERTION'; payload: string }
+  | { type: 'IMAGE_INSERTION_COMPLETE' }
+  | { type: 'SET_ONBOARDING_STEP'; payload: number };
 
-const MODEL_NAME = 'gemini-2.5-flash';
+const initialState: AppState = {
+  chapters: [],
+  activeChapterId: null,
+  milestones: {
+    writing_about: '',
+    sex: '',
+    name: '',
+    dob: '',
+    hometown: '',
+    ethnicity: '',
+    traditions: '',
+    family_members: '',
+    favorite_memories: '',
+    health_aspects: '',
+    parent_wishes: '',
+  },
+  cockpitView: null,
+  toasts: [],
+  theme: 'light',
+  isLoading: true,
+  session: null,
+  user: null,
+  lastSelection: null,
+  imageToInsert: null,
+  onboardingStep: 0,
+};
 
-const calculateAge = (dob: string): number | null => {
-    if (!dob) return null;
-    const birthDate = new Date(dob);
-    if (isNaN(birthDate.getTime())) return null;
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
+const AppContext = createContext<{
+    state: AppState;
+    dispatch: Dispatch<Action>;
+    addChapter: () => Promise<void>;
+    updateChapterContent: (id: string, content: string) => Promise<void>;
+    updateChapterName: (id: string, name: string) => Promise<void>;
+    saveMilestones: (milestones: MilestoneData) => Promise<void>;
+    signUp: (credentials: SignUpWithPasswordCredentials) => Promise<AuthResponse>;
+    signIn: (credentials: SignInWithPasswordCredentials) => Promise<AuthResponse>;
+    signOut: () => Promise<{ error: Error | null }>;
+}>({
+  state: initialState,
+  dispatch: () => null,
+  addChapter: async () => {},
+  updateChapterContent: async () => {},
+  updateChapterName: async () => {},
+  saveMilestones: async () => {},
+  signUp: async () => ({} as AuthResponse),
+  signIn: async () => ({} as AuthResponse),
+  signOut: async () => ({ error: null }),
+});
+
+const appReducer = (state: AppState, action: Action): AppState => {
+  switch (action.type) {
+    case 'SET_INITIAL_DATA': {
+        const { chapters, milestones } = action.payload;
+        const activeId = state.activeChapterId && chapters.some(c => c.id === state.activeChapterId)
+            ? state.activeChapterId
+            : chapters[0]?.id || null;
+
+        return { 
+            ...state, 
+            chapters, 
+            milestones: milestones ? { ...initialState.milestones, ...milestones } : state.milestones,
+            activeChapterId: activeId,
+            isLoading: false 
+        };
     }
-    return age;
-};
-
-const constructPrompt = (currentText: string, milestones: MilestoneData): string => {
-    const age = calculateAge(milestones.dob);
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = currentText;
-    const plainText = tempDiv.textContent || tempDiv.innerText || "";
-
-
-    return `You are an expert ghostwriter, specializing in crafting warm, personal, non-fiction family stories. Your task is to help a user continue their story by providing two distinct, natural-sounding continuations for their last sentence. These continuations should feel as if the user wrote them, seamlessly blending with their style and advancing the narrative with a subtle sense of time, place, or feeling.
-
-The user's story so far:
----
-${plainText}
----
-
-Key Information about the main character:
-- Subject: ${milestones.writing_about || 'Not provided'}
-- Name: ${milestones.name || 'Not provided'}
-- Sex: ${milestones.sex || 'Not provided'}
-- Age: ${age !== null ? `${age} year(s) old` : 'Not provided'}
-- Date of Birth: ${milestones.dob || 'Not provided'}
-- Hometown / Neighborhood: ${milestones.hometown || 'Not provided'}
-- Ethnicity: ${milestones.ethnicity || 'Not provided'}
-- Family Traditions: ${milestones.traditions || 'Not provided'}
-- Family Members: ${milestones.family_members || 'Not provided'}
-- Favorite Memories/Vacations: ${milestones.favorite_memories || 'Not provided'}
-- Parent/Grandparent Wishes: ${milestones.parent_wishes || 'Not provided'}
-
-Follow these rules STRICTLY for each suggestion you generate:
-1.  **Seamless Continuation:** Each suggestion must naturally continue the user's VERY LAST sentence. It must match the user's tone and vocabulary perfectly. Do not repeat the last few words of the user's text.
-2.  **Narrative Flow, Not Just Time:** Instead of a simple time reference (e.g., "at 3 PM"), create a phrase that implies time or setting through action, sensory details, or emotional context. Think about what would logically happen or be observed next.
-3.  **Logical & Contextual Consistency:** The suggestions MUST be logically consistent with all details provided in the story and key information. If the story mentions being at "Martha's Vineyard," do not suggest an activity in "Rockland."
-4.  **Age-Appropriate Actions:** The suggestions must be appropriate for the character's age. A one-year-old enjoys simple, sensory experiences like splashing in water or playing with sand, not watching a Celtics game. Use the provided age to guide your suggestions.
-5.  **Grounded in Believable Reality:** Suggestions should feel real and personal. Draw on common, relatable life moments, the changing of seasons, or specific, personal details from the key information (like names of family members or favorite places). Avoid generic clichés and forced references to famous brands or events unless directly relevant.
-6.  **Creative Distinction:** The two suggestions must offer genuinely different paths for the story. One might focus on an internal feeling, while the other focuses on an external observation.
-7.  **Length:** Each suggestion must be between 8 and 15 words.
-8.  **Output Format:** Return ONLY a JSON object with a single key "suggestions" containing an array of two unique string suggestions. Do not include any other text, explanation, or markdown formatting.
-
-Example:
-User's text ends with: "...she toddled across the warm sand, her tiny hands reaching for the shells."
-Milestones: Name is "Marina", Age is 1.
-A valid response would be:
-{
-  "suggestions": [
-    "just as a gentle wave tickled her toes for the first time.",
-    "while her father, smiling, watched from the colorful beach blanket."
-  ]
-}`;
-};
-
-
-export const getSuggestions = async (currentText: string, milestones: MilestoneData): Promise<string[]> => {
-  try {
-    const prompt = constructPrompt(currentText, milestones);
+    case 'ADD_CHAPTER_SUCCESS':
+      return { ...state, chapters: [...state.chapters, action.payload], activeChapterId: action.payload.id };
     
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            suggestions: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.STRING,
-              },
-              description: "Two distinct, natural-sounding continuations for the user's story.",
-            },
-          },
-        },
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
-
-    const text = response.text.trim();
-    const parsed = JSON.parse(text);
-
-    if (parsed.suggestions && Array.isArray(parsed.suggestions) && parsed.suggestions.length >= 2) {
-      return parsed.suggestions.slice(0, 2);
-    } else {
-      console.error("Unexpected AI response format:", parsed);
-      throw new Error("The AI returned suggestions in an unexpected format.");
+    case 'UPDATE_CHAPTER_CONTENT': {
+        const { id, content, word_count } = action.payload;
+        return {
+            ...state,
+            chapters: state.chapters.map(ch =>
+                ch.id === id ? { ...ch, content, word_count } : ch
+            ),
+        };
     }
-  } catch (error) {
-    console.error("Error fetching suggestions from Gemini:", error);
-    throw new Error("Could not get AI suggestions. Please try again later.");
+    case 'UPDATE_CHAPTER_NAME_SUCCESS': {
+        const { id, name } = action.payload;
+        return {
+            ...state,
+            chapters: state.chapters.map(ch =>
+                ch.id === id ? { ...ch, name } : ch
+            ),
+        };
+    }
+    case 'SET_ACTIVE_CHAPTER':
+      return { ...state, activeChapterId: action.payload };
+    case 'SET_MILESTONES_SUCCESS':
+      return { ...state, milestones: action.payload };
+    case 'SET_COCKPIT_VIEW':
+      return { ...state, cockpitView: action.payload };
+    case 'ADD_TOAST':
+      return { ...state, toasts: [...state.toasts, { ...action.payload, id: Date.now() }] };
+    case 'REMOVE_TOAST':
+      return { ...state, toasts: state.toasts.filter(toast => toast.id !== action.payload) };
+    case 'SET_THEME':
+      return { ...state, theme: action.payload };
+    case 'SET_SESSION':
+      return {
+        ...state,
+        session: action.payload,
+        user: action.payload?.user ?? null,
+        isLoading: false,
+      };
+    case 'SET_LOADING':
+        return { ...state, isLoading: action.payload };
+    case 'SET_LAST_SELECTION':
+      return { ...state, lastSelection: action.payload };
+    case 'REQUEST_IMAGE_INSERTION':
+      return { ...state, imageToInsert: action.payload };
+    case 'IMAGE_INSERTION_COMPLETE':
+      return { ...state, imageToInsert: null };
+    case 'SET_ONBOARDING_STEP':
+        return { ...state, onboardingStep: action.payload };
+    default:
+      return state;
   }
 };
+
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [storedTheme, setStoredTheme] = useLocalStorage<Theme>('babytales-theme', 'light');
+  const [state, dispatch] = useReducer(appReducer, {
+      ...initialState,
+      theme: storedTheme,
+  });
+
+  useEffect(() => { setStoredTheme(state.theme) }, [state.theme, setStoredTheme]);
+
+  useEffect(() => {
+    dispatch({type: 'SET_LOADING', payload: true});
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        dispatch({ type: 'SET_SESSION', payload: session });
+        if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+            dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'auth' });
+        } else if (event === 'SIGNED_IN') {
+            dispatch({ type: 'SET_COCKPIT_VIEW', payload: null });
+        }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async (user: User) => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        try {
+            const { data: chaptersData, error: chaptersError } = await supabase
+                .from('chapters')
+                .select()
+                .eq('user_id', user.id)
+                .order('sort_order', { ascending: true });
+
+            if (chaptersError) throw chaptersError;
+
+            const { data: milestonesData, error: milestonesError } = await supabase
+                .from('milestones')
+                .select()
+                .eq('user_id', user.id)
+                .single();
+
+            if (milestonesError && milestonesError.code !== 'PGRST116') { // Ignore "missing row" error
+                 throw milestonesError;
+            }
+            
+            const typedMilestonesData = milestonesData as Database['public']['Tables']['milestones']['Row'] | null;
+
+            let chaptersToSet: Chapter[] = chaptersData || [];
+            if (chaptersData && chaptersData.length === 0) {
+                // Create first chapter for new user
+                const newChapterData: Database['public']['Tables']['chapters']['Insert'] = { 
+                    name: 'My First Chapter',
+                    content: '',
+                    word_count: 0,
+                    sort_order: 0,
+                    user_id: user.id 
+                };
+                const { data: newChapter, error: insertError } = await supabase
+                    .from('chapters')
+                    .insert(newChapterData)
+                    .select()
+                    .single();
+                
+                if (insertError) throw insertError;
+                if (newChapter) chaptersToSet = [newChapter];
+            }
+            
+            const activeChapterId = chaptersToSet[0]?.id || null;
+
+            const processedMilestones = typedMilestonesData ? {
+                writing_about: typedMilestonesData.writing_about || '',
+                sex: (typedMilestonesData.sex || '') as MilestoneData['sex'],
+                name: typedMilestonesData.name || '',
+                dob: typedMilestonesData.dob || '',
+                hometown: typedMilestonesData.hometown || '',
+                ethnicity: typedMilestonesData.ethnicity || '',
+                traditions: typedMilestonesData.traditions || '',
+                family_members: typedMilestonesData.family_members || '',
+                favorite_memories: typedMilestonesData.favorite_memories || '',
+                health_aspects: typedMilestonesData.health_aspects || '',
+                parent_wishes: typedMilestonesData.parent_wishes || '',
+            } : null;
+
+            dispatch({ type: 'SET_ACTIVE_CHAPTER', payload: activeChapterId });
+            dispatch({ type: 'SET_INITIAL_DATA', payload: { chapters: chaptersToSet, milestones: processedMilestones || initialState.milestones } });
+            
+            const hasMilestones = typedMilestonesData && typedMilestonesData.writing_about;
+            const hasNamedChapter = chaptersToSet.length > 0 && chaptersToSet[0].name !== 'My First Chapter' && chaptersToSet[0].name.trim() !== '';
+            const hasWrittenContent = chaptersToSet.length > 0 && chaptersToSet[0].word_count > 0;
+
+            if (!hasMilestones) {
+                dispatch({ type: 'SET_ONBOARDING_STEP', payload: 1 });
+                dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'milestones' });
+            } else if (!hasNamedChapter) {
+                dispatch({ type: 'SET_ONBOARDING_STEP', payload: 2 });
+                dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'chapters' });
+            } else if (!hasWrittenContent) {
+                dispatch({ type: 'SET_ONBOARDING_STEP', payload: 3 });
+            } else {
+                dispatch({ type: 'SET_ONBOARDING_STEP', payload: 4 }); // Onboarding complete
+            }
+
+        } catch (error: any) {
+            console.error("Error fetching data:", error);
+            const message = error?.message || "An unexpected error occurred while loading your story.";
+            dispatch({ type: 'ADD_TOAST', payload: { message: `Error: ${message}`, type: ToastType.Error } });
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    };
+    
+    if (state.user) {
+      fetchData(state.user);
+    } else {
+        // Set up view for logged-out user
+        const defaultChapter: Chapter = {
+            id: 'temp-1',
+            created_at: new Date().toISOString(),
+            name: '',
+            content: '',
+            word_count: 0,
+            sort_order: 0,
+            user_id: 'unauthenticated'
+        };
+        dispatch({ type: 'SET_ACTIVE_CHAPTER', payload: 'temp-1' });
+        dispatch({ type: 'SET_INITIAL_DATA', payload: { chapters: [defaultChapter], milestones: initialState.milestones }});
+    }
+  }, [state.user]);
+
+  const addChapter = useCallback(async () => {
+    if (!state.user) return;
+    const newSortOrder = state.chapters.reduce((max, ch) => Math.max(ch.sort_order, max), -1) + 1;
+    
+    const newChapterData: Database['public']['Tables']['chapters']['Insert'] = {
+        name: `Chapter ${state.chapters.length + 1}`,
+        content: '',
+        word_count: 0,
+        sort_order: newSortOrder,
+        user_id: state.user.id
+    };
+    const { data: newChapter, error } = await supabase
+        .from('chapters')
+        .insert(newChapterData)
+        .select()
+        .single();
+    
+    if (error) {
+        dispatch({ type: 'ADD_TOAST', payload: { message: `Could not add chapter: ${error.message}`, type: ToastType.Error } });
+    } else if (newChapter) {
+        dispatch({ type: 'ADD_CHAPTER_SUCCESS', payload: newChapter as Chapter });
+        dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'chapters' });
+    }
+  }, [state.chapters, state.user, dispatch]);
+
+  const updateChapterContent = useCallback(async (id: string, content: string) => {
+    if (!state.user) return;
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    const textContent = tempDiv.textContent || tempDiv.innerText || "";
+    const word_count = textContent.trim().split(/\s+/).filter(Boolean).length;
+
+    if (state.onboardingStep === 3 && word_count > 0) {
+        dispatch({ type: 'SET_ONBOARDING_STEP', payload: 4 });
+    }
+    
+    const chapterUpdate: Database['public']['Tables']['chapters']['Update'] = { content, word_count };
+    const { error } = await supabase
+        .from('chapters')
+        .update(chapterUpdate)
+        .eq('id', id);
+
+    if (error) {
+        dispatch({ type: 'ADD_TOAST', payload: { message: `Failed to save changes: ${error.message}`, type: ToastType.Error } });
+    }
+  }, [state.user, dispatch, state.onboardingStep]);
+
+  const updateChapterName = useCallback(async (id: string, name: string) => {
+    if (!state.user) return;
+    const chapterUpdate: Database['public']['Tables']['chapters']['Update'] = { name };
+    const { error } = await supabase
+        .from('chapters')
+        .update(chapterUpdate)
+        .eq('id', id);
+
+    if (error) {
+        dispatch({ type: 'ADD_TOAST', payload: { message: `Failed to update name: ${error.message}`, type: ToastType.Error } });
+    } else {
+        if (state.onboardingStep === 2 && name.trim() !== '') {
+            dispatch({ type: 'SET_ONBOARDING_STEP', payload: 3 });
+            dispatch({ type: 'SET_COCKPIT_VIEW', payload: null });
+        }
+    }
+  }, [state.user, dispatch, state.onboardingStep]);
+
+  const saveMilestones = useCallback(async (milestones: MilestoneData) => {
+    if (!state.user) return;
+    const milestonesDataToSave: Database['public']['Tables']['milestones']['Insert'] = { ...milestones, user_id: state.user.id };
+    const { error } = await supabase
+        .from('milestones')
+        .upsert(milestonesDataToSave);
+
+    if (error) {
+        dispatch({ type: 'ADD_TOAST', payload: { message: `Could not save milestones: ${error.message}`, type: ToastType.Error } });
+    } else {
+        dispatch({ type: 'SET_MILESTONES_SUCCESS', payload: milestones });
+        dispatch({ type: 'ADD_TOAST', payload: { message: 'Milestones saved!', type: ToastType.Success } });
+        if (state.onboardingStep === 1) {
+            dispatch({ type: 'SET_ONBOARDING_STEP', payload: 2 });
+            dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'chapters' });
+        }
+    }
+  }, [state.user, dispatch, state.onboardingStep]);
+  
+  const signUp = (credentials: SignUpWithPasswordCredentials) => supabase.auth.signUp(credentials);
+  const signIn = (credentials: SignInWithPasswordCredentials) => supabase.auth.signInWithPassword(credentials);
+  const signOut = () => supabase.auth.signOut();
+
+  return <AppContext.Provider value={{ state, dispatch, addChapter, updateChapterContent, updateChapterName, saveMilestones, signUp, signIn, signOut }}>{children}</AppContext.Provider>;
+};
+
+export const useAppContext = () => React.useContext(AppContext);

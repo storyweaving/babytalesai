@@ -21,7 +21,6 @@ function buildSystemInstruction(milestones: MilestoneData): string {
     traditions,
     family_members,
     favorite_memories,
-    health_aspects,
     parent_wishes,
   } = milestones;
 
@@ -40,12 +39,6 @@ Here is some information about the main character to help you write a personaliz
 - Family Members: ${family_members || 'Not specified'}
 - Favorite Memories/Spots: ${favorite_memories || 'Not specified'}
 - Parent/Grandparent's wishes for them: ${parent_wishes || 'Not specified'}`;
-
-  if (health_aspects && health_aspects.trim()) {
-    instruction += `
-- Relevant health aspects: ${health_aspects}
-IMPORTANT: Handle any health-related information with the utmost compassion, sensitivity, and positivity. Frame it in a way that is gentle, empowering, and suitable for a story for a very young child. Focus on their strengths, resilience, and unique journey. Avoid clinical or scary terms.`;
-  }
   
   return instruction;
 }

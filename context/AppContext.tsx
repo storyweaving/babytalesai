@@ -51,6 +51,7 @@ const initialState: AppState = {
     traditions: '',
     family_members: '',
     favorite_memories: '',
+    health_aspects: '',
     parent_wishes: '',
   },
   cockpitView: null,
@@ -237,6 +238,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 traditions: typedMilestonesData.traditions || '',
                 family_members: typedMilestonesData.family_members || '',
                 favorite_memories: typedMilestonesData.favorite_memories || '',
+                health_aspects: typedMilestonesData.health_aspects || '',
                 parent_wishes: typedMilestonesData.parent_wishes || '',
             } : null;
 

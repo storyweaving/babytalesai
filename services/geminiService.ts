@@ -45,9 +45,22 @@ Here is some information about the main character to help you write a personaliz
 
 export const getSuggestions = async (story: string, milestones: MilestoneData): Promise<string[]> => {
     const systemInstruction = buildSystemInstruction(milestones);
+    
+    // Convert HTML to plain text to safely truncate it without breaking tags.
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = story;
+    const plainTextStory = tempDiv.textContent || tempDiv.innerText || '';
+
+    // Truncate the story to the last 8000 characters to avoid exceeding the token limit.
+    // This provides enough context for suggestions without sending the entire novel.
+    const MAX_CONTEXT_CHARACTERS = 8000;
+    const truncatedStory = plainTextStory.length > MAX_CONTEXT_CHARACTERS
+        ? `...${plainTextStory.slice(-MAX_CONTEXT_CHARACTERS)}`
+        : plainTextStory;
+
     const userPrompt = `Here is the story so far. Continue it from where it leaves off:
 ---
-${story}
+${truncatedStory}
 ---`;
 
     try {

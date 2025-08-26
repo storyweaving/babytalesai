@@ -42,7 +42,6 @@ export type Database = {
           traditions: string | null;
           family_members: string | null;
           favorite_memories: string | null;
-          health_aspects: string | null;
           parent_wishes: string | null;
         };
         Insert: {
@@ -58,7 +57,6 @@ export type Database = {
           traditions?: string | null;
           family_members?: string | null;
           favorite_memories?: string | null;
-          health_aspects?: string | null;
           parent_wishes?: string | null;
         };
         Update: {
@@ -72,7 +70,6 @@ export type Database = {
           traditions?: string | null;
           family_members?: string | null;
           favorite_memories?: string | null;
-          health_aspects?: string | null;
           parent_wishes?: string | null;
         };
         Relationships: [];
@@ -120,7 +117,6 @@ export interface MilestoneData {
   traditions: string;
   family_members: string;
   favorite_memories: string;
-  health_aspects: string;
   parent_wishes: string;
 }
 

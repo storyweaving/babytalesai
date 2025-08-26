@@ -103,6 +103,10 @@ const MilestonesForm: React.FC = () => {
                     <input type="text" name="favorite_memories" id="favorite_memories" value={localMilestones.favorite_memories || ''} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                 </div>
                 <div>
+                    <label htmlFor="health_aspects" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Are there any specific aspects of their physical or cognitive health that are relevant to their story?</label>
+                    <input type="text" name="health_aspects" id="health_aspects" value={localMilestones.health_aspects || ''} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                </div>
+                <div>
                     <label htmlFor="parent_wishes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Parent/Grandparent wishes</label>
                     <input type="text" name="parent_wishes" id="parent_wishes" value={localMilestones.parent_wishes || ''} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                 </div>

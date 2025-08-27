@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types';
 
@@ -9,4 +8,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase URL and Key are missing. Please provide them in services/supabaseClient.ts');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // Explicitly setting these options ensures the session is persisted in localStorage,
+    // which is the most common fix for "Refresh Token Not Found" errors.
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});

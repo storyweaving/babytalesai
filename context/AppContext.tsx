@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useReducer, useEffect, ReactNode, Dispatch, useCallback } from 'react';
 import { Chapter, MilestoneData, CockpitView, ToastType, Theme, Database } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -93,21 +94,24 @@ const appReducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
     case 'SET_INITIAL_DATA': {
         const { chapters, milestones } = action.payload;
-        const activeId = state.activeChapterId && chapters.some(c => c.id === state.activeChapterId)
+        // Ensure chapters are always sorted by their sort_order property.
+        const sortedChapters = chapters.sort((a, b) => a.sort_order - b.sort_order);
+        const activeId = state.activeChapterId && sortedChapters.some(c => c.id === state.activeChapterId)
             ? state.activeChapterId
-            : chapters[0]?.id || null;
+            : sortedChapters[0]?.id || null;
 
         return { 
             ...state, 
-            chapters, 
+            chapters: sortedChapters, 
             milestones: milestones ? { ...initialState.milestones, ...milestones } : state.milestones,
             activeChapterId: activeId,
             isLoading: false 
         };
     }
-    case 'ADD_CHAPTER_SUCCESS':
-      return { ...state, chapters: [...state.chapters, action.payload], activeChapterId: action.payload.id };
-    
+    case 'ADD_CHAPTER_SUCCESS': {
+      const updatedChapters = [...state.chapters, action.payload].sort((a, b) => a.sort_order - b.sort_order);
+      return { ...state, chapters: updatedChapters, activeChapterId: action.payload.id };
+    }
     case 'UPDATE_CHAPTER_CONTENT': {
         const { id, content, word_count } = action.payload;
         return {

@@ -39,24 +39,25 @@ ${plainText}
 ---
 
 Key Information about the main character:
-- Subject: ${milestones.writing_about || 'Not provided'}
-- Name: ${milestones.name || 'Not provided'}
+- Story Subject & Relationship: ${milestones.story_subject || 'Not provided'}${milestones.story_subject === 'Other' && milestones.story_subject_other ? ` (${milestones.story_subject_other})` : ''}
+- Full Name: ${milestones.name || 'Not provided'}
 - Sex: ${milestones.sex || 'Not provided'}
 - Age: ${age !== null ? `${age} year(s) old` : 'Not provided'}
 - Date of Birth: ${milestones.dob || 'Not provided'}
 - Hometown / Neighborhood: ${milestones.hometown || 'Not provided'}
-- Ethnicity: ${milestones.ethnicity || 'Not provided'}
-- Family Traditions: ${milestones.traditions || 'Not provided'}
-- Family Members: ${milestones.family_members || 'Not provided'}
-- Favorite Memories/Vacations: ${milestones.favorite_memories || 'Not provided'}
-- Parent/Grandparent Wishes: ${milestones.parent_wishes || 'Not provided'}
+- Ethnicity & Cultural Background: ${milestones.ethnicity || 'Not provided'}${milestones.ethnicity === 'Other' && milestones.ethnicity_other ? ` (${milestones.ethnicity_other})` : ''}
+- Health & Well-being Context: ${milestones.health_context || 'Not provided'}
+- Family & Social Sphere: ${milestones.family_dynamics || 'Not provided'}
+- Family Traditions & Events: ${milestones.traditions_and_events || 'Not provided'}
+- Significant Memories & Places: ${milestones.significant_memories || 'Not provided'}
+- Hopes & Aspirations for Them: ${milestones.hopes_and_aspirations || 'Not provided'}
 
 Follow these rules STRICTLY for each suggestion you generate:
 1.  **Seamless Continuation:** Each suggestion must naturally continue the user's VERY LAST sentence. It must match the user's tone and vocabulary perfectly. Do not repeat the last few words of the user's text.
 2.  **Narrative Flow, Not Just Time:** Instead of a simple time reference (e.g., "at 3 PM"), create a phrase that implies time or setting through action, sensory details, or emotional context. Think about what would logically happen or be observed next.
 3.  **Logical & Contextual Consistency:** The suggestions MUST be logically consistent with all details provided in the story and key information. If the story mentions being at "Martha's Vineyard," do not suggest an activity in "Rockland."
 4.  **Age-Appropriate Actions:** The suggestions must be appropriate for the character's age. A one-year-old enjoys simple, sensory experiences like splashing in water or playing with sand, not watching a Celtics game. Use the provided age to guide your suggestions.
-5.  **Grounded in Believable Reality:** Suggestions should feel real and personal. Draw on common, relatable life moments, the changing of seasons, or specific, personal details from the key information (like names of family members or favorite places). Avoid generic clichés and forced references to famous brands or events unless directly relevant.
+5.  **Grounded in Believable Reality:** Suggestions should feel real and personal. Draw on common, relatable life moments, the changing of seasons, or specific, personal details from the key information (like names of family members or favorite places). Avoid generic clichés and forced references to famous brands or events unless directly relevant. The new context fields (Health, Family, Hopes) are especially important for generating deeply personal and relevant suggestions.
 6.  **Creative Distinction:** The two suggestions must offer genuinely different paths for the story. One might focus on an internal feeling, while the other focuses on an external observation.
 7.  **Length:** Each suggestion must be between 8 and 15 words.
 8.  **Output Format:** Return ONLY a JSON object with a single key "suggestions" containing an array of two unique string suggestions. Do not include any other text, explanation, or markdown formatting.

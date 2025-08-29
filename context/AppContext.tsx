@@ -45,16 +45,19 @@ const initialState: AppState = {
   chapters: [],
   activeChapterId: null,
   milestones: {
-    writing_about: '',
+    story_subject: '',
+    story_subject_other: '',
     sex: '',
     name: '',
     dob: '',
     hometown: '',
     ethnicity: '',
-    traditions: '',
-    family_members: '',
-    favorite_memories: '',
-    parent_wishes: '',
+    ethnicity_other: '',
+    health_context: '',
+    family_dynamics: '',
+    traditions_and_events: '',
+    significant_memories: '',
+    hopes_and_aspirations: '',
   },
   cockpitView: null,
   toasts: [],
@@ -236,22 +239,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             const activeChapterId = chaptersToSet[0]?.id || null;
 
             const processedMilestones = typedMilestonesData ? {
-                writing_about: typedMilestonesData.writing_about || '',
+                story_subject: typedMilestonesData.story_subject || '',
+                story_subject_other: typedMilestonesData.story_subject_other || '',
                 sex: (typedMilestonesData.sex || '') as MilestoneData['sex'],
                 name: typedMilestonesData.name || '',
                 dob: typedMilestonesData.dob || '',
                 hometown: typedMilestonesData.hometown || '',
                 ethnicity: typedMilestonesData.ethnicity || '',
-                traditions: typedMilestonesData.traditions || '',
-                family_members: typedMilestonesData.family_members || '',
-                favorite_memories: typedMilestonesData.favorite_memories || '',
-                parent_wishes: typedMilestonesData.parent_wishes || '',
+                ethnicity_other: typedMilestonesData.ethnicity_other || '',
+                health_context: typedMilestonesData.health_context || '',
+                family_dynamics: typedMilestonesData.family_dynamics || '',
+                traditions_and_events: typedMilestonesData.traditions_and_events || '',
+                significant_memories: typedMilestonesData.significant_memories || '',
+                hopes_and_aspirations: typedMilestonesData.hopes_and_aspirations || '',
             } : null;
 
             dispatch({ type: 'SET_ACTIVE_CHAPTER', payload: activeChapterId });
             dispatch({ type: 'SET_INITIAL_DATA', payload: { chapters: chaptersToSet, milestones: processedMilestones || initialState.milestones } });
             
-            const hasMilestones = typedMilestonesData && typedMilestonesData.writing_about;
+            const hasMilestones = typedMilestonesData && typedMilestonesData.story_subject;
             const hasNamedChapter = chaptersToSet.length > 0 && chaptersToSet[0].name !== 'My First Chapter' && chaptersToSet[0].name.trim() !== '';
             const hasWrittenContent = chaptersToSet.length > 0 && chaptersToSet[0].word_count > 0;
 

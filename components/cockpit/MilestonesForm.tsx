@@ -1,13 +1,42 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { MilestoneData } from '../../types';
+
+const SectionHeader: React.FC<{ number: number; title: string; }> = ({ number, title }) => (
+    <div className="flex items-center space-x-3 pt-4 pb-2">
+        <div className="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-600 text-sm font-bold text-gray-700 dark:text-gray-300">
+            {number}
+        </div>
+        <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200">{title}</h3>
+    </div>
+);
+
+const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
+    <input {...props} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+);
+
+const FormSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ children, ...props }) => (
+    <select {...props} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
+        {children}
+    </select>
+);
+
+const FormTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
+    <textarea {...props} rows={3} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+);
+
+const FormLabel: React.FC<{ htmlFor: string; children: React.ReactNode; sublabel?: string }> = ({ htmlFor, children, sublabel }) => (
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {children}
+        {sublabel && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{sublabel}</p>}
+    </label>
+);
 
 const MilestonesForm: React.FC = () => {
   const { state, dispatch, saveMilestones } = useAppContext();
   const [localMilestones, setLocalMilestones] = useState<MilestoneData>(state.milestones);
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setLocalMilestones({ ...localMilestones, [e.target.name]: e.target.value });
   };
 
@@ -37,12 +66,12 @@ const MilestonesForm: React.FC = () => {
                 </svg>
             </button>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Collect character information to personalize AI suggestions. All fields are optional.</p>
         <div className="flex-grow flex flex-col min-h-0">
             <form className="space-y-4 overflow-y-auto flex-grow pr-2">
+                <SectionHeader number={1} title="Story Subject & Relationship" />
                 <div>
-                    <label htmlFor="writing_about" className="block text-sm font-medium text-gray-700 dark:text-gray-300">I'm writing about...</label>
-                    <select id="writing_about" name="writing_about" value={localMilestones.writing_about} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <FormLabel htmlFor="story_subject">Who is the central character of this story?</FormLabel>
+                    <FormSelect id="story_subject" name="story_subject" value={localMilestones.story_subject} onChange={handleChange}>
                         <option value="">Select...</option>
                         <option>My Grandchild</option>
                         <option>My Child</option>
@@ -51,35 +80,44 @@ const MilestonesForm: React.FC = () => {
                         <option>Myself</option>
                         <option>A Fictional Character</option>
                         <option>A Friend</option>
-                    </select>
+                        <option value="Other">Other</option>
+                    </FormSelect>
                 </div>
+                 {localMilestones.story_subject === 'Other' && (
+                    <div>
+                        <FormLabel htmlFor="story_subject_other">If 'Other' or for additional clarity, please specify:</FormLabel>
+                        <FormInput type="text" name="story_subject_other" id="story_subject_other" value={localMilestones.story_subject_other} onChange={handleChange} />
+                    </div>
+                )}
+                
+                <SectionHeader number={2} title="Character Demographics & Identity" />
                 <div>
-                    <label htmlFor="sex" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Their Sex
+                    <FormLabel htmlFor="sex">
+                        What is their sex?
                         {localMilestones.sex === 'female' && <span className="ml-2" style={{color: '#d946ef'}}>■</span>}
                         {localMilestones.sex === 'male' && <span className="ml-2" style={{color: '#3b82f6'}}>■</span>}
-                    </label>
-                    <select id="sex" name="sex" value={localMilestones.sex} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    </FormLabel>
+                    <FormSelect id="sex" name="sex" value={localMilestones.sex} onChange={handleChange}>
                         <option value="">Select...</option>
                         <option value="female">Girl</option>
                         <option value="male">Boy</option>
-                    </select>
+                    </FormSelect>
                 </div>
                 <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Their Name</label>
-                    <input type="text" name="name" id="name" value={localMilestones.name} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                    <FormLabel htmlFor="name">What is their full name?</FormLabel>
+                    <FormInput type="text" name="name" id="name" value={localMilestones.name} onChange={handleChange} />
                 </div>
                 <div>
-                    <label htmlFor="dob" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
-                    <input type="date" name="dob" id="dob" value={localMilestones.dob} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                    <FormLabel htmlFor="dob">When were they born? (Date of Birth)</FormLabel>
+                    <FormInput type="date" name="dob" id="dob" value={localMilestones.dob} onChange={handleChange} />
                 </div>
                 <div>
-                    <label htmlFor="hometown" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hometown / Neighborhood</label>
-                    <input type="text" name="hometown" id="hometown" value={localMilestones.hometown} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                    <FormLabel htmlFor="hometown">Where do they primarily live or call home? (Hometown / Neighborhood)</FormLabel>
+                    <FormInput type="text" name="hometown" id="hometown" value={localMilestones.hometown} onChange={handleChange} />
                 </div>
                 <div>
-                    <label htmlFor="ethnicity" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ethnicity</label>
-                    <select id="ethnicity" name="ethnicity" value={localMilestones.ethnicity} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <FormLabel htmlFor="ethnicity">Regarding their ethnicity, what best describes them?</FormLabel>
+                    <FormSelect id="ethnicity" name="ethnicity" value={localMilestones.ethnicity} onChange={handleChange}>
                          <option value="">Select...</option>
                          <option>Caucasian</option>
                          <option>Hispanic or Latino</option>
@@ -88,23 +126,45 @@ const MilestonesForm: React.FC = () => {
                          <option>American Indian or Alaska Native</option>
                          <option>Native Hawaiian or Other Pacific Islander</option>
                          <option>Two or More Races</option>
-                    </select>
+                         <option>Prefer not to specify</option>
+                         <option value="Other">Other</option>
+                    </FormSelect>
                 </div>
-                <div>
-                    <label htmlFor="traditions" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Family traditions</label>
-                    <input type="text" name="traditions" id="traditions" value={localMilestones.traditions || ''} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                {localMilestones.ethnicity === 'Other' && (
+                    <div>
+                        <FormLabel htmlFor="ethnicity_other">If 'Other' or for additional details about their cultural background:</FormLabel>
+                        <FormInput type="text" name="ethnicity_other" id="ethnicity_other" value={localMilestones.ethnicity_other} onChange={handleChange} />
+                    </div>
+                )}
+                
+                <SectionHeader number={3} title="Health & Well-being Context" />
+                 <div>
+                    <FormLabel htmlFor="health_context" sublabel="e.g., chronic conditions, developmental milestones, unique abilities, significant health events, mental health considerations, etc. This helps the AI understand potential narrative impacts.">
+                        Are there any specific aspects of their physical or cognitive health that are relevant to their story?
+                    </FormLabel>
+                    <FormTextarea name="health_context" id="health_context" value={localMilestones.health_context || ''} onChange={handleChange} />
                 </div>
+                
+                <SectionHeader number={4} title="Family & Social Sphere" />
                 <div>
-                    <label htmlFor="family_members" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tell us about their family members</label>
-                    <input type="text" name="family_members" id="family_members" value={localMilestones.family_members || ''} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                    <FormLabel htmlFor="family_dynamics" sublabel="Who are the key people in their life? What are their relationships like? This helps the AI understand social dynamics and potential influences.">Describe their immediate and extended family members.</FormLabel>
+                    <FormTextarea name="family_dynamics" id="family_dynamics" value={localMilestones.family_dynamics || ''} onChange={handleChange} />
                 </div>
-                <div>
-                    <label htmlFor="favorite_memories" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Share favorite memories or vacation spots</label>
-                    <input type="text" name="favorite_memories" id="favorite_memories" value={localMilestones.favorite_memories || ''} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                 <div>
+                    <FormLabel htmlFor="traditions_and_events">What are some important family traditions, cultural practices, or significant events that shape their life?</FormLabel>
+                    <FormTextarea name="traditions_and_events" id="traditions_and_events" value={localMilestones.traditions_and_events || ''} onChange={handleChange} />
                 </div>
+                
+                <SectionHeader number={5} title="Memories & Milestones" />
                 <div>
-                    <label htmlFor="parent_wishes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Parent/Grandparent wishes</label>
-                    <input type="text" name="parent_wishes" id="parent_wishes" value={localMilestones.parent_wishes || ''} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                    <FormLabel htmlFor="significant_memories" sublabel="These provide rich context for memorable time references.">Share some favorite memories, significant experiences, or important places (like vacation spots) that are meaningful to them or their story.</FormLabel>
+                    <FormTextarea name="significant_memories" id="significant_memories" value={localMilestones.significant_memories || ''} onChange={handleChange} />
+                </div>
+
+                <SectionHeader number={6} title="Hopes & Aspirations (If Applicable)" />
+                <div>
+                    <FormLabel htmlFor="hopes_and_aspirations" sublabel="This gives the AI a deeper understanding of the story's underlying emotional goals.">If you are writing about a loved one, what are your hopes, dreams, or significant wishes for them as expressed in this story?</FormLabel>
+                    <FormTextarea name="hopes_and_aspirations" id="hopes_and_aspirations" value={localMilestones.hopes_and_aspirations || ''} onChange={handleChange} />
                 </div>
             </form>
             <div className="mt-6 flex-shrink-0">

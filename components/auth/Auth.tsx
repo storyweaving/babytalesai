@@ -119,7 +119,7 @@ const Auth: React.FC = () => {
                             type="password"
                             name="password"
                             id="password"
-                            autoComplete={isLogin ? "current-password" : "new-password"}
+                            autoComplete={isLogin ? "current-password" : "one-time-code"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required

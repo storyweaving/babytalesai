@@ -79,7 +79,7 @@ const Navbar: React.FC = () => {
             ))}
             </nav>
           </div>
-          <div className="flex items-center space-x-3 ml-2">
+          <div className="flex items-center space-x-[15px] md:space-x-3 ml-2">
             {state.user && userInitials && (
                 <div 
                     className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm select-none"

@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
     const { state, dispatch } = useAppContext();
 
     const handleNavClick = (view: CockpitView) => {
-        if (!state.session) {
+        if (!state.session && view !== 'auth' && view !== 'mobile-menu') {
             dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'auth' });
             dispatch({ type: 'ADD_TOAST', payload: { message: 'Please create an account or log in to continue.', type: ToastType.Info } });
             return;
@@ -71,9 +71,9 @@ const Navbar: React.FC = () => {
                 <svg className="h-8 w-auto text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
-              <span className="text-xl font-bold text-gray-900 dark:text-white hidden sm:inline">BabyTalesAI.com</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white inline">BabyTalesAI.com</span>
             </div>
-            <nav className="nav-scroll flex items-center space-x-1 md:space-x-2 overflow-x-auto pb-2 -mb-2">
+            <nav className="nav-scroll hidden md:flex items-center space-x-1 md:space-x-2 overflow-x-auto pb-2 -mb-2">
             {navItems.map(item => (
                 <NavItem key={item.label} {...item} activeView={state.cockpitView} setView={handleNavClick} />
             ))}
@@ -88,6 +88,16 @@ const Navbar: React.FC = () => {
                     {userInitials}
                 </div>
             )}
+            <button
+              type="button"
+              onClick={() => handleNavClick('mobile-menu')}
+              className="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 md:hidden"
+              aria-label="Open navigation menu"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
             <button
               type="button"
               onClick={() => handleNavClick('settings')}

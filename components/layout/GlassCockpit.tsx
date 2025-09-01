@@ -6,7 +6,7 @@ import ChapterList from '../cockpit/ChapterList';
 import SettingsView from '../cockpit/MenuView';
 import PicturesView from '../cockpit/PicturesView';
 import { jsPDF } from 'jspdf';
-import { ToastType } from '../../types';
+import { CockpitView, ToastType } from '../../types';
 import Auth from '../auth/Auth';
 
 const MainMenuView: React.FC = () => {
@@ -175,6 +175,53 @@ const MainMenuView: React.FC = () => {
     );
 }
 
+const MobileMenuView: React.FC = () => {
+    const { dispatch } = useAppContext();
+
+    const handleClose = () => {
+        dispatch({ type: 'SET_COCKPIT_VIEW', payload: null });
+    }
+
+    const handleNavigate = (view: CockpitView) => {
+        dispatch({ type: 'SET_COCKPIT_VIEW', payload: view });
+    }
+
+    const menuItems = [
+        { label: 'Milestones', view: 'milestones' as CockpitView, icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18V15M10 18V12M14 18V9M18 18V6" /></svg> },
+        { label: 'Chapters', view: 'chapters' as CockpitView, icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+        { label: 'Pictures', view: 'pictures' as CockpitView, icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+        { label: 'Menu', view: 'menu' as CockpitView, icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg> },
+    ];
+
+    return (
+        <div className="p-6 h-full flex flex-col bg-white dark:bg-gray-800">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Navigation</h2>
+                <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div className="flex-grow flex flex-col">
+                <ul className="space-y-4 text-gray-700 dark:text-gray-300">
+                    {menuItems.map((item) => (
+                        <li key={item.view}>
+                            <button
+                                onClick={() => handleNavigate(item.view)}
+                                className="w-full flex items-center space-x-3 bg-gray-100 dark:bg-gray-700/50 p-3 rounded-lg font-medium transition-colors hover:text-green-600 dark:hover:text-green-400"
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    );
+}
+
 const EmptyCockpitView: React.FC = () => {
   return (
     <div className="p-6 h-full flex flex-col items-center justify-center text-center bg-white dark:bg-gray-800">
@@ -212,6 +259,8 @@ const GlassCockpit: React.FC = () => {
         return <SettingsView />;
       case 'menu':
         return <MainMenuView />;
+      case 'mobile-menu':
+        return <MobileMenuView />;
       case 'auth':
         return <Auth />;
       default:

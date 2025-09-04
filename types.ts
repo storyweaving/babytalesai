@@ -132,7 +132,7 @@ export interface MilestoneData {
   hopes_and_aspirations: string;
 }
 
-export type CockpitView = 'milestones' | 'chapters' | 'pictures' | 'settings' | 'menu' | 'auth' | 'mobile-menu' | 'baby-card-builder' | null;
+export type CockpitView = 'milestones' | 'chapters' | 'pictures' | 'settings' | 'menu' | 'auth' | 'mobile-menu' | 'baby-card-builder' | 'share-tale' | null;
 
 export enum ToastType {
   Success = 'success',

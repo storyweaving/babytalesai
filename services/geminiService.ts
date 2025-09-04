@@ -1,6 +1,5 @@
-
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { MilestoneData } from '../types';
+import { Chapter, MilestoneData } from '../types';
 
 const apiKey = process.env.API_KEY;
 
@@ -175,5 +174,87 @@ Generate ONLY the image. Do not add text or borders.`;
     } catch (error) {
         console.error("Error generating baby card from Gemini:", error);
         throw new Error("Could not generate the image. The model may be unavailable or the request was blocked. Please try again later.");
+    }
+};
+
+
+export type TaleType = 'teaser' | 'mini' | 'summary' | 'full';
+
+const getPromptForTaleType = (taleType: TaleType): { prompt: string; wordCount: string } => {
+    switch (taleType) {
+        case 'teaser':
+            return {
+                prompt: "Create a tiny, exciting glimpse of the story to get someone hooked. This is perfect for a quick text message.",
+                wordCount: "25-50 words"
+            };
+        case 'mini':
+            return {
+                prompt: "Create a snapshot of the story, introducing the main characters and the beginning of their adventure.",
+                wordCount: "100-150 words"
+            };
+        case 'summary':
+            return {
+                prompt: "Summarize the core adventure from start to finish, hitting all the key moments and highlights.",
+                wordCount: "250-300 words"
+            };
+        default:
+            return { prompt: '', wordCount: '' };
+    }
+}
+
+export const generateShortTale = async (
+    chapters: Chapter[],
+    milestones: MilestoneData,
+    taleType: TaleType
+): Promise<string> => {
+    
+    const fullStory = chapters
+        .map((chapter, index) => `Chapter ${index + 1}: ${chapter.name}\n${chapter.content}`)
+        .join('\n\n');
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = fullStory;
+    const plainTextStory = tempDiv.textContent || tempDiv.innerText || "";
+
+    if (taleType === 'full') {
+        return plainTextStory;
+    }
+
+    const { prompt: typePrompt, wordCount } = getPromptForTaleType(taleType);
+    const age = calculateAge(milestones.dob);
+
+    const prompt = `You are an expert storyteller. Your task is to summarize a story based on the user's request.
+
+Here is the full story:
+---
+${plainTextStory}
+---
+
+Key Information about the main character:
+- Full Name: ${milestones.name || 'Not provided'}
+- Age: ${age !== null ? `${age} year(s) old` : 'Not provided'}
+
+Your instructions:
+1.  ${typePrompt}
+2.  The length must be approximately ${wordCount}.
+3.  Write in a warm, engaging, and personal tone, suitable for sharing with family and friends.
+4.  Do not include any introductory or concluding phrases like "Here is the summary:" or "I hope you enjoy this tale."
+5.  Return ONLY the generated story text.
+`;
+    
+    try {
+        const response = await ai.models.generateContent({
+            model: MODEL_NAME,
+            contents: prompt,
+            config: {
+                thinkingConfig: { thinkingBudget: 0 },
+            },
+        });
+        
+        return response.text.trim();
+
+    } catch (error) {
+        console.error("Error generating short tale from Gemini:", error);
+        throw new Error("Could not generate the tale. The model may be unavailable. Please try again later.");
     }
 };

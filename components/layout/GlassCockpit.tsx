@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import MilestonesForm from '../cockpit/MilestonesForm';
@@ -9,6 +8,7 @@ import { jsPDF } from 'jspdf';
 import { CockpitView, ToastType } from '../../types';
 import Auth from '../auth/Auth';
 import BabyCardBuilderView from '../cockpit/BabyCardBuilderView';
+import ShareTaleView from '../cockpit/ShareTaleView';
 
 const MainMenuView: React.FC = () => {
     const { state, dispatch } = useAppContext();
@@ -140,6 +140,30 @@ const MainMenuView: React.FC = () => {
                 <ul className="space-y-4 text-gray-700 dark:text-gray-300">
                     <li className="bg-gray-100 dark:bg-gray-700/50 p-3 rounded-lg">
                         <button 
+                            onClick={() => dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'baby-card-builder' })} 
+                            className="w-full flex items-center justify-center space-x-2 font-medium transition-colors hover:text-green-600 dark:hover:text-green-400"
+                            aria-label="Build Your Baby Card"
+                        >
+                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                            <span>Build Your Baby Card</span>
+                        </button>
+                    </li>
+                    <li className="bg-gray-100 dark:bg-gray-700/50 p-3 rounded-lg">
+                        <button 
+                            onClick={() => dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'share-tale' })} 
+                            className="w-full flex items-center justify-center space-x-2 font-medium transition-colors hover:text-green-600 dark:hover:text-green-400"
+                            aria-label="Share Short Tale"
+                        >
+                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                            </svg>
+                            <span>Share Short Tale</span>
+                        </button>
+                    </li>
+                    <li className="bg-gray-100 dark:bg-gray-700/50 p-3 rounded-lg">
+                        <button 
                             onClick={handleDownload} 
                             disabled={isDownloading}
                             className="w-full flex items-center justify-center space-x-2 font-medium transition-colors hover:text-green-600 dark:hover:text-green-400 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -158,18 +182,6 @@ const MainMenuView: React.FC = () => {
                                     <span>Download Story as PDF</span>
                                 </>
                             )}
-                        </button>
-                    </li>
-                     <li className="bg-gray-100 dark:bg-gray-700/50 p-3 rounded-lg">
-                        <button 
-                            onClick={() => dispatch({ type: 'SET_COCKPIT_VIEW', payload: 'baby-card-builder' })} 
-                            className="w-full flex items-center justify-center space-x-2 font-medium transition-colors hover:text-green-600 dark:hover:text-green-400"
-                            aria-label="Build Your Baby Card"
-                        >
-                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                            </svg>
-                            <span>Build Your Baby Card</span>
                         </button>
                     </li>
                     <li className="bg-gray-100 dark:bg-gray-700/50 p-3 rounded-lg">
@@ -274,6 +286,8 @@ const GlassCockpit: React.FC = () => {
         return <MainMenuView />;
       case 'baby-card-builder':
         return <BabyCardBuilderView />;
+      case 'share-tale':
+        return <ShareTaleView />;
       case 'mobile-menu':
         return <MobileMenuView />;
       case 'auth':

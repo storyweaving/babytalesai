@@ -1,4 +1,5 @@
-import { GoogleGenAI, Type } from "@google/genai";
+
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { MilestoneData } from '../types';
 
 const apiKey = process.env.API_KEY;
@@ -10,6 +11,7 @@ if (!apiKey) {
 const ai = new GoogleGenAI({ apiKey });
 
 const MODEL_NAME = 'gemini-2.5-flash';
+const IMAGE_MODEL_NAME = 'gemini-2.5-flash-image-preview';
 
 const calculateAge = (dob: string): number | null => {
     if (!dob) return null;
@@ -113,4 +115,65 @@ export const getSuggestions = async (currentText: string, milestones: MilestoneD
     console.error("Error fetching suggestions from Gemini:", error);
     throw new Error("Could not get AI suggestions. Please try again later.");
   }
+};
+
+interface CardOptions {
+    artStyle: string;
+    age: string;
+    setting: string;
+    toy: string;
+    pet: string;
+    clothingColor: string;
+    hairAccessory: string;
+    magicMoment: string;
+}
+
+export const generateBabyCard = async (image: { data: string; mimeType: string }, options: CardOptions): Promise<string> => {
+    const { artStyle, age, setting, toy, pet, clothingColor, hairAccessory, magicMoment } = options;
+
+    const specialDetails = [
+        toy !== 'None' && `The child has their favorite toy, a ${toy}.`,
+        pet !== 'None' && `Their beloved pet, a ${pet}, is nearby.`,
+        clothingColor !== 'None' && `The child is wearing a ${clothingColor.toLowerCase()} outfit.`,
+        hairAccessory !== 'None' && `The child is wearing a ${hairAccessory.toLowerCase()}.`
+    ].filter(Boolean).join(' ');
+
+    const prompt = `You are a skilled children's book illustrator. Your task is to take the provided photograph of a child and transform it into a beautiful illustration. Follow these instructions precisely:
+1.  **Subject's Age**: The child in the illustration should look like a ${age}.
+2.  **Art Style**: The final image must be in a '${artStyle}' style. (Classic Storybook: detailed and colorful with soft lighting. Watercolor Whimsy: soft, blended look. Vintage Charm: muted tones and texture. Playful Cartoon: simplified, bold outlines, bright colors).
+3.  **Scene**: Place the child in a '${setting}' setting.
+4.  **Details**: ${specialDetails || 'No special details requested.'}
+5.  **Moment**: The overall mood should capture a feeling of '${magicMoment}'.
+
+Generate ONLY the image. Do not add text or borders.`;
+    
+    const base64Data = image.data.split(',')[1];
+    
+    try {
+        const response = await ai.models.generateContent({
+            model: IMAGE_MODEL_NAME,
+            contents: {
+                parts: [
+                    { inlineData: { data: base64Data, mimeType: image.mimeType } },
+                    { text: prompt },
+                ],
+            },
+            config: {
+                responseModalities: [Modality.IMAGE, Modality.TEXT],
+            },
+        });
+
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                const base64ImageBytes: string = part.inlineData.data;
+                return `data:image/png;base64,${base64ImageBytes}`;
+            }
+        }
+        
+        throw new Error("The AI did not return an image. Please try adjusting your options.");
+
+    } catch (error) {
+        console.error("Error generating baby card from Gemini:", error);
+        throw new Error("Could not generate the image. The model may be unavailable or the request was blocked. Please try again later.");
+    }
 };
